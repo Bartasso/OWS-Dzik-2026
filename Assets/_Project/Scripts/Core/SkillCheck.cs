@@ -40,7 +40,7 @@ namespace Game.Core
             }
 
             int proficiency = request.IsProficient ? _rules.ProficiencyBonus : 0;
-            int total = natural + request.AbilityModifier + proficiency;
+            int total = natural + request.AbilityModifier + proficiency + request.Bonus;
             bool success = natural == DieFaces || (natural != 1 && total >= request.Dc);
 
             return new SkillCheckResult(natural, total, success, wasRerolled);

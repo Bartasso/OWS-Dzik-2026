@@ -1,3 +1,5 @@
+using System;
+
 namespace Game.Core
 {
     /// <summary>
@@ -14,6 +16,30 @@ namespace Game.Core
         public static float Nat1RerollChance(int luck, float chancePerLuck)
         {
             return Clamp01(luck * chancePerLuck);
+        }
+
+        /// <summary>Chance of a percentage effect (trinket proc) after LCK.</summary>
+        public static float ProcChance(float baseChance, int luck, float bonusPerLuck)
+        {
+            return Clamp01(baseChance * (1f + luck * bonusPerLuck));
+        }
+
+        public static float StackValue(StackCurve curve, float valuePerStack, int stacks)
+        {
+            if (stacks <= 0)
+            {
+                return 0f;
+            }
+
+            switch (curve)
+            {
+                case StackCurve.Linear:
+                    return valuePerStack * stacks;
+                case StackCurve.Hyperbolic:
+                    return 1f - 1f / (1f + valuePerStack * stacks);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(curve), curve, null);
+            }
         }
 
         private static float Clamp01(float value)

@@ -173,15 +173,52 @@ namespace Game.Tests.EditMode
             Assert.That(result.Natural, Is.EqualTo(7));
         }
 
+        [Test]
+        public void Bonus_IsAddedToTotal()
+        {
+            SkillCheckResult result = Resolve(new[] { 10 }, Request(dc: 16, modifier: 1, proficient: true, bonus: 3));
+
+            Assert.That(result.Total, Is.EqualTo(16));
+            Assert.That(result.Success, Is.True);
+        }
+
+        [Test]
+        public void Bonus_DoesNotOverrideNat1()
+        {
+            Assert.That(Resolve(new[] { 1 }, Request(dc: 2, bonus: 50)).Success, Is.False);
+        }
+
+        [Test]
+        public void FromStats_ReadsAbilityLuckBonusAndAdvantage()
+        {
+            var stats = new StatSheet(StatIds.UnboundedLimits());
+            ModifierSourceId source = stats.CreateSource();
+            stats.SetBase(StatId.Wis, 2f);
+            stats.SetBase(StatId.Lck, 3f);
+            stats.AddModifier(new StatModifier(StatId.SkillCheckBonus, ModifierOp.Flat, 2f, source));
+            stats.AddModifier(new StatModifier(StatId.SkillCheckAdvantage, ModifierOp.Flat, 1f, source));
+
+            SkillCheckRequest request = SkillCheckRequest.FromStats(stats, Ability.Wis, true, 14);
+
+            Assert.That(request.Dc, Is.EqualTo(14));
+            Assert.That(request.AbilityModifier, Is.EqualTo(2));
+            Assert.That(request.IsProficient, Is.True);
+            Assert.That(request.Luck, Is.EqualTo(3));
+            Assert.That(request.Bonus, Is.EqualTo(2));
+            Assert.That(request.HasAdvantage, Is.True);
+            Assert.That(request.HasDisadvantage, Is.False);
+        }
+
         private static SkillCheckRequest Request(
             int dc = 10,
             int modifier = 0,
             bool proficient = false,
             int luck = 0,
             bool advantage = false,
-            bool disadvantage = false)
+            bool disadvantage = false,
+            int bonus = 0)
         {
-            return new SkillCheckRequest(dc, modifier, proficient, luck, advantage, disadvantage);
+            return new SkillCheckRequest(dc, modifier, proficient, luck, advantage, disadvantage, bonus);
         }
 
         private static SkillCheckResult Resolve(int[] dice, SkillCheckRequest request, float[] chanceRolls = null)

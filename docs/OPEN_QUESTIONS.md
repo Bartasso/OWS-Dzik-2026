@@ -16,11 +16,10 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 
 ## Walka i formuły (`Core.StatFormulas`)
 
-- [ ] **Pełna formuła obrażeń**: kolejność i łączenie składników (baza broni × poziom broni × cecha × trinkety × talenty × krytyk). Bonusy z różnych źródeł sumują się czy mnożą? Czy wrogowie mają pancerz/odporności?
-- [ ] **Skrajne i ujemne wartości**: STR −25 = −125% obrażeń, INT +50 = −100% cooldownu, ujemna szybkość ataku, ujemna szansa na krytyk. Clamp (min/max w `GameBalance`) czy malejące zyski?
-- [ ] **Brakujące liczby**: bazowe HP i regeneracja (CON), efekty WIS (leczenie, Loki, zasięg XP), wydłużenie boostów (CHA), odrzut (STR), wpływ LCK na rzadkość kart/dropów i na efekty procentowe trinketów (dodatkowy rzut jak w RoR2 czy +X%?).
-- [ ] **Kategorie broni**: bonus z cechy dotyczy kategorii (siłowe, zręcznościowe, arkaniczne, natura/boskie, bardowskie), a „Pięść Mędrca” zmienia skalowanie „czarów”. Propozycja: broń ma tag kategorii + cechę skalującą. Którą cechą skaluje się „miecz i tarcza”?
-- [ ] **Stackowanie trinketów**: dokładne krzywe (liniowa, hiperboliczna `1 − 1/(1 + k·n)`?).
+- [ ] **Pełna formuła obrażeń**: kolejność składników (baza broni × poziom broni × cecha × trinkety × talenty × krytyk). Łączenie bonusów statystyk jest rozstrzygnięte (kubełki), ale pipeline trafienia nie. Czy wrogowie mają pancerz/odporności? Czy cecha skalująca (STR −25 = −125%) też potrzebuje clampa?
+- [ ] **Brakujące liczby**: bazowe HP i regeneracja (CON), efekty WIS (leczenie, Loki, zasięg XP), wydłużenie boostów (CHA), odrzut (STR), wpływ LCK na rzadkość kart/dropów.
+- [ ] **Miecz i tarcza**: którą cechą i kategorią skaluje się startowa broń Sira Seby?
+- [ ] **Wartości krzywych stackowania** dla konkretnych trinketów (mechanizm już jest: `Linear` / `Hyperbolic`).
 - [ ] **Ubrania**: ile cechy daje typ i jak rośnie z poziomem; typ może dawać kilka statystyk (Klapki). Przy 2 pierścieniach gracz wybiera, który wymienić?
 - [ ] **Wartości tymczasowe do M0**: max poziom broni i ubrań, reroll kart, krzywa XP, wzrost trudności w czasie.
 
@@ -32,7 +31,7 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 
 ## Architektura
 
-- [ ] **Efekty talentów i trinketów**: SO w `Data` nie mogą znać `Gameplay`. Propozycja: system modyfikatorów i hooków w `Core`, efekty jako `[SerializeReference]` w `Data`. Najważniejsza decyzja przed M0.
+- [ ] **Efekty-zachowania i klasowe**: aura spowolnienia (Skarpety do Sandałów), Loki, Szał Piwny. Potrzebują prefabów lub interfejsów skilli klasowych w `IEffectContext`.
 - [ ] **Wstrzykiwanie serwisów** do obiektów ze sceny i z poolingu bez singletonów: ręczne `Init(...)` od bootstrapu czy prosty kontener?
 - [ ] **Zdarzenia**: C# `event` ze structami czy kanały SO?
 - [ ] **Tick symulacji** pod co-op (`FixedUpdate`?) i czy `Gameplay` może używać CharacterController/Rigidbody.
@@ -50,3 +49,10 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 - 2026-10-29: **Przerzut z LCK przy advantage/disadvantage**: przerzut tylko gdy *wybrany* wynik = 1, jedną kością, szansa przycięta do 0–100%. Wynik przerzutu ostateczny; przerzut na 20 liczy się jako Nat20.
 - 2026-10-29: **Wczytywanie `GameBalance`**: referencja z bootstrapu w Inspectorze (bez `Resources` i Addressables). Jeden asset w `Assets/_Project/Data/`.
 - 2026-10-29: **`Game.Core` ma `noEngineReferences: true`**: kompilator pilnuje, że Core to czysty C#.
+- 2026-10-29: **System modyfikatorów i hooków**: `StatSheet` w `Core` z kubełkami `(baza + Σflat) × (1 + Σ%add) × Π(1 + %mult)`, potem clamp. Efekty trinketów/talentów to klasy `[SerializeReference]` w `Data` implementujące interfejsy z `Core` (`IEffect`, `ITriggerHandler`); hooki przez `TriggerBus`.
+- 2026-10-29: **Cechy i statystyki skill checków są całkowite**: przyjmują tylko modyfikatory `Flat` o całych wartościach.
+- 2026-10-29: **Skrajne wartości**: clamp wyniku końcowego per statystyka, limity w `GameBalance` (`_statLimits`). Malejące zyski tylko przez krzywą `Hyperbolic` trinketów.
+- 2026-10-29: **LCK a efekty procentowe**: `szansa × (1 + LCK × 5%)`, clamp 0–100%, mnożnik w `GameBalance`. Jedyne miejsce: `IEffectContext.RollProc` (strumień `Rng.Combat`).
+- 2026-10-29: **Stackowanie trinketów**: krzywe `Linear` (`wartość × n`) i `Hyperbolic` (`1 − 1/(1 + k·n)`).
+- 2026-10-29: **Kategorie broni**: broń ma `WeaponCategory` (Strength, Dexterity, Arcane, Nature, Bardic) i cechę skalującą; talenty nadpisują cechę per kategoria w `ScalingTable`.
+- 2026-10-29: **Formuła skill checka**: `wynik = naturalny + cecha + biegłość + SkillCheckBonus`. Advantage/disadvantage, gdy statystyki `SkillCheckAdvantage`/`Disadvantage` > 0.

@@ -8,7 +8,8 @@ namespace Game.Core
             bool isProficient,
             int luck,
             bool hasAdvantage,
-            bool hasDisadvantage)
+            bool hasDisadvantage,
+            int bonus = 0)
         {
             Dc = dc;
             AbilityModifier = abilityModifier;
@@ -16,6 +17,7 @@ namespace Game.Core
             Luck = luck;
             HasAdvantage = hasAdvantage;
             HasDisadvantage = hasDisadvantage;
+            Bonus = bonus;
         }
 
         public int Dc { get; }
@@ -29,5 +31,20 @@ namespace Game.Core
         public bool HasAdvantage { get; }
 
         public bool HasDisadvantage { get; }
+
+        /// <summary>Flat bonus from trinkets and talents (SkillCheckBonus stat).</summary>
+        public int Bonus { get; }
+
+        public static SkillCheckRequest FromStats(StatSheet stats, Ability ability, bool isProficient, int dc)
+        {
+            return new SkillCheckRequest(
+                dc,
+                stats.GetAbility(ability),
+                isProficient,
+                stats.GetAbility(Ability.Lck),
+                stats.GetInt(StatId.SkillCheckAdvantage) > 0,
+                stats.GetInt(StatId.SkillCheckDisadvantage) > 0,
+                stats.GetInt(StatId.SkillCheckBonus));
+        }
     }
 }

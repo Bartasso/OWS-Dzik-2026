@@ -15,5 +15,19 @@ MonoBehaviour:
   _baseCritChance: 0.05
   _critChancePerLuck: 0.01
   _baseCritMultiplier: 2
+  _procChancePerLuck: 0.05
   _proficiencyBonus: 2
   _nat1RerollChancePerLuck: 0.05
+  _statLimits:
+  - _stat: 7
+    _min: 1
+    _max: Infinity
+  - _stat: 9
+    _min: 0.1
+    _max: Infinity
+  - _stat: 10
+    _min: 0.1
+    _max: Infinity
+  - _stat: 13
+    _min: 0
+    _max: 0.8

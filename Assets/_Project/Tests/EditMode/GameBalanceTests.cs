@@ -19,6 +19,7 @@ namespace Game.Tests.EditMode
             Set("_baseCritMultiplier", 2f);
             Set("_proficiencyBonus", 2);
             Set("_nat1RerollChancePerLuck", 0.05f);
+            Set("_procChancePerLuck", 0.05f);
         }
 
         [TearDown]
@@ -37,6 +38,7 @@ namespace Game.Tests.EditMode
         [TestCase("_baseCritChance", 1.5f)]
         [TestCase("_critChancePerLuck", -0.01f)]
         [TestCase("_nat1RerollChancePerLuck", 1.1f)]
+        [TestCase("_procChancePerLuck", -0.05f)]
         [TestCase("_baseCritMultiplier", 0.5f)]
         public void OutOfRangeFloat_IsError(string field, float value)
         {
@@ -60,6 +62,40 @@ namespace Game.Tests.EditMode
 
             Assert.That(rules.ProficiencyBonus, Is.EqualTo(2));
             Assert.That(rules.Nat1RerollChancePerLuck, Is.EqualTo(0.05f));
+        }
+
+        [Test]
+        public void StatLimits_BuildClampsOnlyListedStats()
+        {
+            SetLimits(new StatLimit(StatId.CooldownReduction, 0f, 0.8f));
+
+            StatRange[] limits = _balance.BuildStatLimits();
+
+            Assert.That(limits.Length, Is.EqualTo(StatIds.Count));
+            Assert.That(limits[(int)StatId.CooldownReduction].Max, Is.EqualTo(0.8f));
+            Assert.That(limits[(int)StatId.MaxHp].Max, Is.EqualTo(float.PositiveInfinity));
+            Assert.That(Validate().HasErrors, Is.False);
+        }
+
+        [Test]
+        public void StatLimit_MinAboveMax_IsError()
+        {
+            SetLimits(new StatLimit(StatId.MoveSpeed, 2f, 1f));
+
+            Assert.That(Validate().HasErrors, Is.True);
+        }
+
+        [Test]
+        public void StatLimit_Duplicate_IsError()
+        {
+            SetLimits(new StatLimit(StatId.MoveSpeed, 0f, 5f), new StatLimit(StatId.MoveSpeed, 0f, 3f));
+
+            Assert.That(Validate().HasErrors, Is.True);
+        }
+
+        private void SetLimits(params StatLimit[] limits)
+        {
+            Set("_statLimits", new System.Collections.Generic.List<StatLimit>(limits));
         }
 
         private ValidationReport Validate()

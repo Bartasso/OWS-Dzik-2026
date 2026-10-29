@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Game.Core;
 using UnityEngine;
 
@@ -15,9 +17,17 @@ namespace Game.Data
         [SerializeField] private float _critChancePerLuck;
         [SerializeField] private float _baseCritMultiplier;
 
+        [Header("Effects")]
+        [Tooltip("Proc chance multiplier per LCK point: chance × (1 + LCK × value).")]
+        [SerializeField] private float _procChancePerLuck;
+
         [Header("Skill checks")]
         [SerializeField] private int _proficiencyBonus;
         [SerializeField] private float _nat1RerollChancePerLuck;
+
+        [Header("Stats")]
+        [Tooltip("Clamp on final stat values. Stats without an entry are unbounded.")]
+        [SerializeField] private List<StatLimit> _statLimits = new List<StatLimit>();
 
         public float BaseCritChance => _baseCritChance;
 
@@ -25,15 +35,29 @@ namespace Game.Data
 
         public float BaseCritMultiplier => _baseCritMultiplier;
 
+        public float ProcChancePerLuck => _procChancePerLuck;
+
         public SkillCheckRules ToSkillCheckRules()
         {
             return new SkillCheckRules(_proficiencyBonus, _nat1RerollChancePerLuck);
+        }
+
+        public StatRange[] BuildStatLimits()
+        {
+            StatRange[] limits = StatIds.UnboundedLimits();
+            foreach (StatLimit limit in _statLimits)
+            {
+                limits[(int)limit.Stat] = new StatRange(limit.Min, limit.Max);
+            }
+
+            return limits;
         }
 
         public void Validate(ValidationReport report)
         {
             CheckRange(report, nameof(_baseCritChance), _baseCritChance, 0f, 1f);
             CheckRange(report, nameof(_critChancePerLuck), _critChancePerLuck, 0f, 1f);
+            CheckRange(report, nameof(_procChancePerLuck), _procChancePerLuck, 0f, 1f);
             CheckRange(report, nameof(_nat1RerollChancePerLuck), _nat1RerollChancePerLuck, 0f, 1f);
 
             if (_baseCritMultiplier < 1f)
@@ -45,11 +69,38 @@ namespace Game.Data
             {
                 report.AddError(name, $"{nameof(_proficiencyBonus)} must be >= 0, is {_proficiencyBonus}", this);
             }
+
+            ValidateStatLimits(report);
         }
 
         private void OnValidate()
         {
             ValidationLog.ValidateAndLog(this);
+        }
+
+        private void ValidateStatLimits(ValidationReport report)
+        {
+            var seen = new bool[StatIds.Count];
+            foreach (StatLimit limit in _statLimits)
+            {
+                if (!Enum.IsDefined(typeof(StatId), limit.Stat))
+                {
+                    report.AddError(name, $"stat limit for unknown stat {limit.Stat}", this);
+                    continue;
+                }
+
+                if (seen[(int)limit.Stat])
+                {
+                    report.AddError(name, $"duplicate stat limit for {limit.Stat}", this);
+                }
+
+                seen[(int)limit.Stat] = true;
+
+                if (float.IsNaN(limit.Min) || float.IsNaN(limit.Max) || limit.Min > limit.Max)
+                {
+                    report.AddError(name, $"stat limit for {limit.Stat} has min {limit.Min} > max {limit.Max}", this);
+                }
+            }
         }
 
         private void CheckRange(ValidationReport report, string field, float value, float min, float max)
