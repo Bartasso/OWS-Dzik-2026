@@ -11,7 +11,8 @@ namespace Game.Gameplay
     /// </summary>
     public sealed class EffectLoadout : IEffectContext
     {
-        private readonly Dictionary<EffectDefinition, Owned> _owned = new Dictionary<EffectDefinition, Owned>();
+        private readonly Dictionary<EffectDefinition, OwnedEntry> _owned = new Dictionary<EffectDefinition, OwnedEntry>();
+        private readonly List<EffectDefinition> _ownedInOrder = new List<EffectDefinition>();
         private readonly TriggerBus _triggers = new TriggerBus();
         private readonly IRandomSource _procRandom;
         private readonly float _procChancePerLuck;
@@ -29,9 +30,12 @@ namespace Game.Gameplay
 
         public ScalingTable Scaling { get; }
 
+        /// <summary>Owned definitions in the order they were first added.</summary>
+        public IReadOnlyList<EffectDefinition> Owned => _ownedInOrder;
+
         public int GetStacks(EffectDefinition definition)
         {
-            return _owned.TryGetValue(definition, out Owned owned) ? owned.Stacks : 0;
+            return _owned.TryGetValue(definition, out OwnedEntry owned) ? owned.Stacks : 0;
         }
 
         /// <summary>Adds one copy: installs the effects, or raises their stack count if already owned.</summary>
@@ -42,7 +46,7 @@ namespace Game.Gameplay
                 throw new ArgumentNullException(nameof(definition));
             }
 
-            if (_owned.TryGetValue(definition, out Owned owned))
+            if (_owned.TryGetValue(definition, out OwnedEntry owned))
             {
                 owned.Stacks++;
                 for (int i = 0; i < owned.Instances.Length; i++)
@@ -67,7 +71,8 @@ namespace Game.Gameplay
                 effects[i].Install(instances[i], this);
             }
 
-            _owned.Add(definition, new Owned(instances));
+            _owned.Add(definition, new OwnedEntry(instances));
+            _ownedInOrder.Add(definition);
         }
 
         /// <summary>Removes the definition with all its copies and everything its effects added.</summary>
@@ -78,7 +83,7 @@ namespace Game.Gameplay
                 throw new ArgumentNullException(nameof(definition));
             }
 
-            if (!_owned.TryGetValue(definition, out Owned owned))
+            if (!_owned.TryGetValue(definition, out OwnedEntry owned))
             {
                 throw new InvalidOperationException($"{definition.name} is not owned");
             }
@@ -91,6 +96,7 @@ namespace Game.Gameplay
             }
 
             _owned.Remove(definition);
+            _ownedInOrder.Remove(definition);
         }
 
         public void Raise(in TriggerArgs args)
@@ -115,9 +121,9 @@ namespace Game.Gameplay
             return chance >= 1f || _procRandom.NextFloat() < chance;
         }
 
-        private sealed class Owned
+        private sealed class OwnedEntry
         {
-            public Owned(EffectInstance[] instances)
+            public OwnedEntry(EffectInstance[] instances)
             {
                 Instances = instances;
                 Stacks = 1;

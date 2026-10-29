@@ -25,15 +25,12 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 
 ## Skill checki (`Core.SkillCheck`, M1)
 
-- [ ] **Kanoniczna lista umiejętności**: GDD wymienia m.in. podnoszenie, skoki, wytrzymałość, które nie są niczyją biegłością. Propozycja: `SkillDef` z przypisaną cechą, sytuacja wskazuje umiejętność.
 - [ ] **DC od numeru areny**: formuła. Wartość biegłości (+2) do `GameBalance`.
 - [ ] **Pauza w co-op (M2)**: czy gra staje u wszystkich? Propozycja: pauza jako stan symulacji, nie `Time.timeScale`.
 
 ## Architektura
 
 - [ ] **Efekty-zachowania i klasowe**: aura spowolnienia (Skarpety do Sandałów), Loki, Szał Piwny. Potrzebują prefabów lub interfejsów skilli klasowych w `IEffectContext`.
-- [ ] **Wstrzykiwanie serwisów** do obiektów ze sceny i z poolingu bez singletonów: ręczne `Init(...)` od bootstrapu czy prosty kontener?
-- [ ] **Zdarzenia**: C# `event` ze structami czy kanały SO?
 - [ ] **Tick symulacji** pod co-op (`FixedUpdate`?) i czy `Gameplay` może używać CharacterController/Rigidbody.
 - [ ] **Walidacja w buildzie release**: log, ekran błędu?
 - [ ] **Zapis meta-progresji**: format, lokalizacja, wersjonowanie.
@@ -56,3 +53,8 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 - 2026-10-29: **Stackowanie trinketów**: krzywe `Linear` (`wartość × n`) i `Hyperbolic` (`1 − 1/(1 + k·n)`).
 - 2026-10-29: **Kategorie broni**: broń ma `WeaponCategory` (Strength, Dexterity, Arcane, Nature, Bardic) i cechę skalującą; talenty nadpisują cechę per kategoria w `ScalingTable`.
 - 2026-10-29: **Formuła skill checka**: `wynik = naturalny + cecha + biegłość + SkillCheckBonus`. Advantage/disadvantage, gdy statystyki `SkillCheckAdvantage`/`Disadvantage` > 0.
+- 2026-10-30: **Umiejętności**: `SkillDef` (nazwa + cecha), postać ma listę biegłości (`SkillDef`), sytuacja (`SkillCheckSiteDef`) wskazuje umiejętność. Pełna lista umiejętności na MVP nadal do ustalenia.
+- 2026-10-30: **Wstrzykiwanie serwisów**: ręczne `Init(...)` z `GameBootstrap`; komponenty sceny startują wyłączone i włączają się w `Init`.
+- 2026-10-30: **Zdarzenia**: C# `event` ze structami (`CombatEvents`), tylko Gameplay → Presentation/UI.
+- 2026-10-30: **Tymczasowa formuła obrażeń (M0, sandbox)**: `baza broni × max(0, 1 + 5% × cecha skalująca)`, krytyk `× max(1, bazowy mnożnik + bonus)`. Pełny pipeline nadal otwarty (punkt wyżej).
+- 2026-10-30: **Nat 20 w skill checku**: nagroda × `GameBalance._nat20RewardCopies` (na razie 2).

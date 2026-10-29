@@ -18,6 +18,20 @@ namespace Game.Core
             return Clamp01(luck * chancePerLuck);
         }
 
+        /// <summary>Weapon damage factor from its scaling ability: +X% per point, never below zero.</summary>
+        public static float AbilityDamageMultiplier(int abilityModifier, float bonusPerPoint)
+        {
+            float multiplier = 1f + abilityModifier * bonusPerPoint;
+            return multiplier < 0f ? 0f : multiplier;
+        }
+
+        /// <summary>A crit never deals less than a normal hit.</summary>
+        public static float CritMultiplier(float baseMultiplier, float bonus)
+        {
+            float multiplier = baseMultiplier + bonus;
+            return multiplier < 1f ? 1f : multiplier;
+        }
+
         /// <summary>Chance of a percentage effect (trinket proc) after LCK.</summary>
         public static float ProcChance(float baseChance, int luck, float bonusPerLuck)
         {

@@ -17,6 +17,16 @@ namespace Game.Data
         [SerializeField] private float _critChancePerLuck;
         [SerializeField] private float _baseCritMultiplier;
 
+        [Tooltip("Weapon damage bonus per point of its scaling ability: 0.05 = +5%.")]
+        [SerializeField] private float _damagePerAbilityPoint;
+
+        [Header("Characters")]
+        [Tooltip("Bonus to each of the class's two primary abilities.")]
+        [SerializeField] private int _primaryAbilityBonus;
+
+        [Tooltip("Meters within which the player can interact (E).")]
+        [SerializeField] private float _interactRadius;
+
         [Header("Effects")]
         [Tooltip("Proc chance multiplier per LCK point: chance × (1 + LCK × value).")]
         [SerializeField] private float _procChancePerLuck;
@@ -24,6 +34,12 @@ namespace Game.Data
         [Header("Skill checks")]
         [SerializeField] private int _proficiencyBonus;
         [SerializeField] private float _nat1RerollChancePerLuck;
+
+        [Tooltip("Copies of the reward granted on a natural 20.")]
+        [SerializeField] private int _nat20RewardCopies;
+
+        [Tooltip("Seconds the game stays paused to show the roll.")]
+        [SerializeField] private float _skillCheckPauseSeconds;
 
         [Header("Stats")]
         [Tooltip("Clamp on final stat values. Stats without an entry are unbounded.")]
@@ -36,6 +52,16 @@ namespace Game.Data
         public float BaseCritMultiplier => _baseCritMultiplier;
 
         public float ProcChancePerLuck => _procChancePerLuck;
+
+        public float DamagePerAbilityPoint => _damagePerAbilityPoint;
+
+        public int PrimaryAbilityBonus => _primaryAbilityBonus;
+
+        public float InteractRadius => _interactRadius;
+
+        public int Nat20RewardCopies => _nat20RewardCopies;
+
+        public float SkillCheckPauseSeconds => _skillCheckPauseSeconds;
 
         public SkillCheckRules ToSkillCheckRules()
         {
@@ -69,6 +95,20 @@ namespace Game.Data
             {
                 report.AddError(name, $"{nameof(_proficiencyBonus)} must be >= 0, is {_proficiencyBonus}", this);
             }
+
+            if (_primaryAbilityBonus < 0)
+            {
+                report.AddError(name, $"{nameof(_primaryAbilityBonus)} must be >= 0, is {_primaryAbilityBonus}", this);
+            }
+
+            if (_nat20RewardCopies < 1)
+            {
+                report.AddError(name, $"{nameof(_nat20RewardCopies)} must be >= 1, is {_nat20RewardCopies}", this);
+            }
+
+            DataChecks.NotNegative(report, this, nameof(_damagePerAbilityPoint), _damagePerAbilityPoint);
+            DataChecks.Positive(report, this, nameof(_interactRadius), _interactRadius);
+            DataChecks.NotNegative(report, this, nameof(_skillCheckPauseSeconds), _skillCheckPauseSeconds);
 
             ValidateStatLimits(report);
         }

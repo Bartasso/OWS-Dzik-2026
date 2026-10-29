@@ -15,9 +15,14 @@ MonoBehaviour:
   _baseCritChance: 0.05
   _critChancePerLuck: 0.01
   _baseCritMultiplier: 2
+  _damagePerAbilityPoint: 0.05
+  _primaryAbilityBonus: 2
+  _interactRadius: 2.5
   _procChancePerLuck: 0.05
   _proficiencyBonus: 2
   _nat1RerollChancePerLuck: 0.05
+  _nat20RewardCopies: 2
+  _skillCheckPauseSeconds: 2
   _statLimits:
   - _stat: 7
     _min: 1

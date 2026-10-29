@@ -20,6 +20,11 @@ namespace Game.Tests.EditMode
             Set("_proficiencyBonus", 2);
             Set("_nat1RerollChancePerLuck", 0.05f);
             Set("_procChancePerLuck", 0.05f);
+            Set("_damagePerAbilityPoint", 0.05f);
+            Set("_primaryAbilityBonus", 2);
+            Set("_interactRadius", 2.5f);
+            Set("_nat20RewardCopies", 2);
+            Set("_skillCheckPauseSeconds", 2f);
         }
 
         [TearDown]
@@ -39,6 +44,9 @@ namespace Game.Tests.EditMode
         [TestCase("_critChancePerLuck", -0.01f)]
         [TestCase("_nat1RerollChancePerLuck", 1.1f)]
         [TestCase("_procChancePerLuck", -0.05f)]
+        [TestCase("_damagePerAbilityPoint", -0.05f)]
+        [TestCase("_interactRadius", 0f)]
+        [TestCase("_skillCheckPauseSeconds", -1f)]
         [TestCase("_baseCritMultiplier", 0.5f)]
         public void OutOfRangeFloat_IsError(string field, float value)
         {

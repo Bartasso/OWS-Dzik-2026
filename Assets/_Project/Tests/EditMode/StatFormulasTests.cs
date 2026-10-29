@@ -42,6 +42,24 @@ namespace Game.Tests.EditMode
             Assert.That(StatFormulas.Nat1RerollChance(luck, 0.05f), Is.EqualTo(expected).Within(Tolerance));
         }
 
+        [TestCase(0, 1f)]
+        [TestCase(2, 1.1f)]
+        [TestCase(-4, 0.8f)]
+        [TestCase(-20, 0f)]
+        [TestCase(-25, 0f)]
+        public void AbilityDamageMultiplier_IsFivePercentPerPoint_NeverNegative(int ability, float expected)
+        {
+            Assert.That(StatFormulas.AbilityDamageMultiplier(ability, 0.05f), Is.EqualTo(expected).Within(Tolerance));
+        }
+
+        [TestCase(2f, 0f, 2f)]
+        [TestCase(2f, 0.5f, 2.5f)]
+        [TestCase(2f, -3f, 1f)]
+        public void CritMultiplier_IsBasePlusBonus_AtLeastOne(float baseMultiplier, float bonus, float expected)
+        {
+            Assert.That(StatFormulas.CritMultiplier(baseMultiplier, bonus), Is.EqualTo(expected).Within(Tolerance));
+        }
+
         [TestCase(0.10f, 0, 0.10f)]
         [TestCase(0.10f, 4, 0.12f)]
         [TestCase(0.10f, -10, 0.05f)]
