@@ -27,7 +27,6 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 ## Skill checki (`Core.SkillCheck`, M1)
 
 - [ ] **Kanoniczna lista umiejętności**: GDD wymienia m.in. podnoszenie, skoki, wytrzymałość, które nie są niczyją biegłością. Propozycja: `SkillDef` z przypisaną cechą, sytuacja wskazuje umiejętność.
-- [ ] **Przerzut z LCK przy advantage**: jedna kość czy znowu dwie? Propozycja: przerzut tylko gdy wybrany wynik = 1, jedną kością, szansa przycięta do 0–100%.
 - [ ] **DC od numeru areny**: formuła. Wartość biegłości (+2) do `GameBalance`.
 - [ ] **Pauza w co-op (M2)**: czy gra staje u wszystkich? Propozycja: pauza jako stan symulacji, nie `Time.timeScale`.
 
@@ -38,7 +37,6 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 - [ ] **Zdarzenia**: C# `event` ze structami czy kanały SO?
 - [ ] **Tick symulacji** pod co-op (`FixedUpdate`?) i czy `Gameplay` może używać CharacterController/Rigidbody.
 - [ ] **Walidacja w buildzie release**: log, ekran błędu?
-- [ ] **Wczytywanie `GameBalance`**: referencja z bootstrapu, `Resources`, Addressables (nowy pakiet)?
 - [ ] **Zapis meta-progresji**: format, lokalizacja, wersjonowanie.
 - [ ] **Flow field na terenie 3D**: rozdzielczość, wysokości/piętra, separacja wrogów przy 300+.
 - [ ] **Lokalizacja tekstów**: polski na sztywno czy Unity Localization (nowy pakiet)?
@@ -49,3 +47,6 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 ## Rozstrzygnięte
 
 - 2026-10-29: Klawisz E = interakcja (skill checki, skrzynie, portal, Nocny). Skille broni pasywnych przeniesione na Q, R, C (GDD sekcja 3).
+- 2026-10-29: **Przerzut z LCK przy advantage/disadvantage**: przerzut tylko gdy *wybrany* wynik = 1, jedną kością, szansa przycięta do 0–100%. Wynik przerzutu ostateczny; przerzut na 20 liczy się jako Nat20.
+- 2026-10-29: **Wczytywanie `GameBalance`**: referencja z bootstrapu w Inspectorze (bez `Resources` i Addressables). Jeden asset w `Assets/_Project/Data/`.
+- 2026-10-29: **`Game.Core` ma `noEngineReferences: true`**: kompilator pilnuje, że Core to czysty C#.
