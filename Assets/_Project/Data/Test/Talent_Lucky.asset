@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e099d2da4fa7403aae4f7f39ac2e7f0, type: 3}
+  m_Name: Talent_Lucky
+  m_EditorClassIdentifier: Game.Data::Game.Data.TalentDef
+  _id: test.lucky
+  _displayName: "Szcz\u0119\u015Bciarz"
+  _rarity: 2
+  _effects:
+  - rid: 4857497913466028195
+  references:
+    version: 2
+    RefIds:
+    - rid: 4857497913466028195
+      type: {class: StatOnTriggerEffect, ns: Game.Data, asm: Game.Data}
+      data:
+        _trigger: 4
+        _stat: 6
+        _op: 0
+        _valuePerStack: 1

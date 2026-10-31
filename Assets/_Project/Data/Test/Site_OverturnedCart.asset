@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89d927260c88fb196a23311deba2aaee, type: 3}
+  m_Name: Site_OverturnedCart
+  m_EditorClassIdentifier: Game.Data::Game.Data.SkillCheckSiteDef
+  _id: test.site_cart
+  _displayName: "Podnie\u015B przewr\xF3cony w\xF3z"
+  _skill: {fileID: 11400000, guid: c2dd9128b0e4c9db5b58cead19f44839, type: 2}
+  _dc: 15
+  _reward: {fileID: 11400000, guid: 10e261001e2a141e79e3170d68dc43f7, type: 2}

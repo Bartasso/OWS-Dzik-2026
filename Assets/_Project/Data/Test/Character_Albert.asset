@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25ae28f9d896bdc78a012e360c293843, type: 3}
+  m_Name: Character_Albert
+  m_EditorClassIdentifier: Game.Data::Game.Data.CharacterDef
+  _id: test.albert
+  _displayName: Albert
+  _primaryAbilities: 0300000004000000i
+  _baseStats:
+  - _stat: 7
+    _value: 100
+  - _stat: 8
+    _value: 1
+  - _stat: 9
+    _value: 1
+  - _stat: 10
+    _value: 6
+  _proficiencies:
+  - {fileID: 11400000, guid: 6064264b9fff945de88968ce2db6f140, type: 2}
+  - {fileID: 11400000, guid: 4dd597fc168d19721a4eab96a9a4bae7, type: 2}
+  _startingWeapon: {fileID: 11400000, guid: ca7e97b21a0ebf4068ff4c7d9902b11b, type: 2}

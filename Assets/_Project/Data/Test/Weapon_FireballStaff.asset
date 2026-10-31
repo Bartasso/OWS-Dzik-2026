@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e33ba9e76c6aa33797e21710997c853, type: 3}
+  m_Name: Weapon_FireballStaff
+  m_EditorClassIdentifier: Game.Data::Game.Data.WeaponDef
+  _id: test.fireball_staff
+  _displayName: Kostur Ognistych Kul
+  _category: 2
+  _scalingAbility: 3
+  _baseDamage: 10
+  _fireInterval: 0.4
+  _projectileSpeed: 22
+  _projectileRadius: 0.25
+  _range: 35
