@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Game.Data
 {
-    /// <summary>Weapons of a category scale with a different ability, e.g. "Pięść Mędrca": Arcane → Str.</summary>
+    /// <summary>Weapons of a category scale with a different ability, e.g. "Sage's Fist": Arcane → Str.</summary>
     [Serializable]
     public sealed class ScalingOverrideEffect : Effect
     {

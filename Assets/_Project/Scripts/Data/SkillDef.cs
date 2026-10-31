@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Data
 {
-    /// <summary>A skill check category ("Zwierzęta", "Siłowanie") and the ability it rolls with.</summary>
+    /// <summary>A skill check category ("Animal Handling", "Athletics") and the ability it rolls with.</summary>
     [CreateAssetMenu(menuName = "Game/Skill", fileName = "Skill")]
     public sealed class SkillDef : Definition
     {

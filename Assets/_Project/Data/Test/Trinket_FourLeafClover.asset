@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Trinket_FourLeafClover
   m_EditorClassIdentifier: Game.Data::Game.Data.TrinketDef
   _id: test.four_leaf_clover
-  _displayName: Czterolistna koniczyna
+  _displayName: Four-Leaf Clover
   _rarity: 1
   _effects:
   - rid: 4857497913466028192

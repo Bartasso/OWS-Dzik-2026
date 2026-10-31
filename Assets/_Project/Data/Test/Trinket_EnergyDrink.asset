@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Trinket_EnergyDrink
   m_EditorClassIdentifier: Game.Data::Game.Data.TrinketDef
   _id: test.energy_drink
-  _displayName: Energetyk z Nocnego
+  _displayName: Night Shop Energy Drink
   _rarity: 2
   _effects:
   - rid: 4857497913466028187

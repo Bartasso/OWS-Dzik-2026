@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Enemy_Owlbear
   m_EditorClassIdentifier: Game.Data::Game.Data.EnemyDef
   _id: test.owlbear
-  _displayName: "Sowonied\u017Awied\u017A"
+  _displayName: Owlbear
   _kind: 2
   _maxHp: 500
   _moveSpeed: 2.2

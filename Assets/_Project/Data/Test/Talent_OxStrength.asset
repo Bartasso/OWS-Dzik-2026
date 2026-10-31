@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Talent_OxStrength
   m_EditorClassIdentifier: Game.Data::Game.Data.TalentDef
   _id: test.ox_strength
-  _displayName: "Si\u0142a Wo\u0142u"
+  _displayName: Ox Strength
   _rarity: 0
   _effects:
   - rid: 4857497913466028197

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Trinket_GrandpasDie
   m_EditorClassIdentifier: Game.Data::Game.Data.TrinketDef
   _id: test.grandpas_die
-  _displayName: Kostka z Kieszeni Dziadka
+  _displayName: Grandpa's Pocket Die
   _rarity: 2
   _effects:
   - rid: 4857497913466028191

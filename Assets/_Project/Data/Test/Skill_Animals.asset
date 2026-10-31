@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Skill_Animals
   m_EditorClassIdentifier: Game.Data::Game.Data.SkillDef
   _id: test.skill_animals
-  _displayName: "Zwierz\u0119ta"
+  _displayName: Animal Handling
   _ability: 4

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Data
 {
-    /// <summary>A funny situation on the map ("Ściągnij kota z drzewa"): one d20 attempt, reward on success.</summary>
+    /// <summary>A funny situation on the map ("Get the Cat Down from the Tree"): one d20 attempt, reward on success.</summary>
     [CreateAssetMenu(menuName = "Game/Skill Check Site", fileName = "SkillCheckSite")]
     public sealed class SkillCheckSiteDef : Definition
     {

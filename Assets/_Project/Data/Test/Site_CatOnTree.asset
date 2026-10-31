@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Site_CatOnTree
   m_EditorClassIdentifier: Game.Data::Game.Data.SkillCheckSiteDef
   _id: test.site_cat
-  _displayName: "\u015Aci\u0105gnij kota z drzewa"
+  _displayName: Get the Cat Down from the Tree
   _skill: {fileID: 11400000, guid: 737b69bc1206e19aaa55670d13399ccc, type: 2}
   _dc: 12
   _reward: {fileID: 11400000, guid: d0c3e7ff396b6b74ea39c976c1c6a67f, type: 2}

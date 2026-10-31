@@ -111,24 +111,24 @@ namespace Game.Sandbox
             string verdict;
             if (result.Nat20)
             {
-                verdict = $"NATURALNE 20! Sukces, nagroda x{outcome.RewardCopies}";
+                verdict = $"NATURAL 20! Success, reward x{outcome.RewardCopies}";
             }
             else if (result.Nat1)
             {
-                verdict = "NATURALNA 1! Katastrofa";
+                verdict = "NATURAL 1! Disaster";
             }
             else
             {
-                verdict = result.Success ? "SUKCES" : "PORAŻKA";
+                verdict = result.Success ? "SUCCESS" : "FAILURE";
             }
 
             string mode = request.HasAdvantage && !request.HasDisadvantage ? " (advantage)"
                 : request.HasDisadvantage && !request.HasAdvantage ? " (disadvantage)" : "";
-            string reroll = result.WasRerolled ? " (przerzut z LCK!)" : "";
-            string reward = result.Success ? $"\nNagroda: {e.Site.Reward.DisplayName}" : "";
+            string reroll = result.WasRerolled ? " (LCK reroll!)" : "";
+            string reward = result.Success ? $"\nReward: {e.Site.Reward.DisplayName}" : "";
 
             _banner = $"{e.Site.DisplayName}: {e.Site.Skill.DisplayName} ({e.Site.Skill.Ability}){mode}\n"
-                + $"k20 = {result.Natural}{reroll}  + cecha {request.AbilityModifier}  + biegłość {proficiency}  + bonus {request.Bonus}"
+                + $"d20 = {result.Natural}{reroll}  + ability {request.AbilityModifier}  + proficiency {proficiency}  + bonus {request.Bonus}"
                 + $"  = {result.Total}  vs DC {request.Dc}\n{verdict}{reward}";
             _bannerRemaining = _bannerSeconds;
         }
@@ -162,7 +162,7 @@ namespace Game.Sandbox
 
             if (_playerHealth.IsDead)
             {
-                GUI.Box(new Rect(w / 2f - 200f, h / 2f - 40f, 400f, 80f), "Albert padł.\nF5: nowy run", _bannerStyle);
+                GUI.Box(new Rect(w / 2f - 200f, h / 2f - 40f, 400f, 80f), "Albert is down.\nF5: new run", _bannerStyle);
             }
         }
 
@@ -182,24 +182,24 @@ namespace Game.Sandbox
                 }
             }
 
-            if (GUILayout.Button("Wywołaj trigger BossKilled"))
+            if (GUILayout.Button("Raise trigger BossKilled"))
             {
                 _context.Loadout.Raise(new TriggerArgs(GameTrigger.BossKilled, 0f));
             }
 
-            if (GUILayout.Button("Przyzwij bossa"))
+            if (GUILayout.Button("Summon boss"))
             {
                 _enemySpawner.SpawnBoss();
             }
 
-            if (GUILayout.Button($"Rzuć proc {_settings.TestProcChance:P0} (wynik: {_procResult})"))
+            if (GUILayout.Button($"Roll proc {_settings.TestProcChance:P0} (result: {_procResult})"))
             {
-                _procResult = _context.Loadout.RollProc(_settings.TestProcChance) ? "TAK" : "nie";
+                _procResult = _context.Loadout.RollProc(_settings.TestProcChance) ? "YES" : "no";
             }
 
-            _playerHealth.Invulnerable = GUILayout.Toggle(_playerHealth.Invulnerable, "Nieśmiertelność");
+            _playerHealth.Invulnerable = GUILayout.Toggle(_playerHealth.Invulnerable, "Invulnerable");
 
-            GUILayout.Label("WASD ruch, mysz celowanie, LPM strzał, E interakcja\nTab kursor, F1 panel, F5 nowy run");
+            GUILayout.Label("WASD move, mouse aim, LMB shoot, E interact\nTab cursor, F1 panel, F5 new run");
             GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
@@ -213,13 +213,13 @@ namespace Game.Sandbox
 
             _text.Clear();
             _text.AppendLine($"{_context.Character.DisplayName}   seed {_context.Rng.Seed}");
-            _text.AppendLine($"HP {_playerHealth.Current:0}/{_playerHealth.Max:0}{(_context.Pause.IsPaused ? "   [PAUZA]" : "")}");
-            _text.AppendLine($"Wrogowie {_enemySpawner.Alive}   zabici {_enemySpawner.Kills}   pociski {_projectiles.ActiveCount}");
+            _text.AppendLine($"HP {_playerHealth.Current:0}/{_playerHealth.Max:0}{(_context.Pause.IsPaused ? "   [PAUSED]" : "")}");
+            _text.AppendLine($"Enemies {_enemySpawner.Alive}   killed {_enemySpawner.Kills}   projectiles {_projectiles.ActiveCount}");
             _text.AppendLine();
-            _text.AppendLine($"{weapon.DisplayName}: {weapon.Category} skaluje z {scaling}");
-            _text.AppendLine($"Obrażenia {DamageCalculator.BaseDamage(weapon, stats, _context.Scaling, balance):0.#}"
-                + $"   krytyk {DamageCalculator.CritChance(stats, balance):P1} x{DamageCalculator.CritMultiplier(stats, balance):0.##}");
-            _text.AppendLine($"Odstęp strzałów {_playerShooter.FireInterval:0.###} s");
+            _text.AppendLine($"{weapon.DisplayName}: {weapon.Category} scales with {scaling}");
+            _text.AppendLine($"Damage {DamageCalculator.BaseDamage(weapon, stats, _context.Scaling, balance):0.#}"
+                + $"   crit {DamageCalculator.CritChance(stats, balance):P1} x{DamageCalculator.CritMultiplier(stats, balance):0.##}");
+            _text.AppendLine($"Fire interval {_playerShooter.FireInterval:0.###} s");
             _text.AppendLine();
 
             foreach (StatId stat in (StatId[])Enum.GetValues(typeof(StatId)))
@@ -228,10 +228,10 @@ namespace Game.Sandbox
             }
 
             _text.AppendLine();
-            _text.AppendLine("Posiadane:");
+            _text.AppendLine("Owned:");
             if (_context.Loadout.Owned.Count == 0)
             {
-                _text.AppendLine("  (nic)");
+                _text.AppendLine("  (none)");
             }
 
             foreach (EffectDefinition owned in _context.Loadout.Owned)

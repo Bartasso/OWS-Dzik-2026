@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Talent_Lucky
   m_EditorClassIdentifier: Game.Data::Game.Data.TalentDef
   _id: test.lucky
-  _displayName: "Szcz\u0119\u015Bciarz"
+  _displayName: Lucky
   _rarity: 2
   _effects:
   - rid: 4857497913466028195

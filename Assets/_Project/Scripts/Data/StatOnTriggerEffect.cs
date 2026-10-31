@@ -6,7 +6,7 @@ namespace Game.Data
 {
     /// <summary>
     /// Adds a stat modifier for the rest of the run every time a trigger fires,
-    /// e.g. "Szczęściarz": +1 LCK per boss killed. The amount scales linearly with stacks.
+    /// e.g. "Lucky": +1 LCK per boss killed. The amount scales linearly with stacks.
     /// </summary>
     [Serializable]
     public sealed class StatOnTriggerEffect : Effect, ITriggerHandler

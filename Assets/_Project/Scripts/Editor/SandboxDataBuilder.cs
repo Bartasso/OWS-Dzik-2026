@@ -35,15 +35,15 @@ namespace Game.Editor
                 throw new InvalidOperationException($"missing {BalancePath}");
             }
 
-            SkillDef animals = Skill("Skill_Animals", "test.skill_animals", "Zwierzęta", Ability.Wis);
-            SkillDef athletics = Skill("Skill_Athletics", "test.skill_athletics", "Siłowanie", Ability.Str);
-            SkillDef mechanisms = Skill("Skill_MagicMechanisms", "test.skill_magic_mechanisms", "Magiczne mechanizmy", Ability.Int);
-            SkillDef riddles = Skill("Skill_Riddles", "test.skill_riddles", "Zagadki", Ability.Int);
+            SkillDef animals = Skill("Skill_Animals", "test.skill_animals", "Animal Handling", Ability.Wis);
+            SkillDef athletics = Skill("Skill_Athletics", "test.skill_athletics", "Athletics", Ability.Str);
+            SkillDef mechanisms = Skill("Skill_MagicMechanisms", "test.skill_magic_mechanisms", "Magic Mechanisms", Ability.Int);
+            SkillDef riddles = Skill("Skill_Riddles", "test.skill_riddles", "Riddles", Ability.Int);
 
             WeaponDef staff = Asset<WeaponDef>("Weapon_FireballStaff", s =>
             {
                 SetString(s, "_id", "test.fireball_staff");
-                SetString(s, "_displayName", "Kostur Ognistych Kul");
+                SetString(s, "_displayName", "Fireball Staff");
                 SetEnum(s, "_category", WeaponCategory.Arcane);
                 SetEnum(s, "_scalingAbility", Ability.Int);
                 SetFloat(s, "_baseDamage", 10f);
@@ -64,8 +64,8 @@ namespace Game.Editor
                 SetObject(s, "_startingWeapon", staff);
             });
 
-            EnemyDef goblin = Enemy("Enemy_Goblin", "test.goblin", "Dresiarski goblin", EnemyKind.Normal, 30f, 3f, 0.5f, 8f, 1f);
-            EnemyDef owlbear = Enemy("Enemy_Owlbear", "test.owlbear", "Sowoniedźwiedź", EnemyKind.Boss, 500f, 2.2f, 1.2f, 25f, 1.5f);
+            EnemyDef goblin = Enemy("Enemy_Goblin", "test.goblin", "Tracksuit Goblin", EnemyKind.Normal, 30f, 3f, 0.5f, 8f, 1f);
+            EnemyDef owlbear = Enemy("Enemy_Owlbear", "test.owlbear", "Owlbear", EnemyKind.Boss, 500f, 2.2f, 1.2f, 25f, 1.5f);
 
             EnemySpawnSettings spawns = Asset<EnemySpawnSettings>("EnemySpawnSettings_Test", s =>
             {
@@ -78,30 +78,30 @@ namespace Game.Editor
                 SetInt(s, "_bossEveryKills", 25);
             });
 
-            TrinketDef energyDrink = Trinket("Trinket_EnergyDrink", "test.energy_drink", "Energetyk z Nocnego", Rarity.Rare,
+            TrinketDef energyDrink = Trinket("Trinket_EnergyDrink", "test.energy_drink", "Night Shop Energy Drink", Rarity.Rare,
                 new StatModifierEffect(StatId.AttackSpeed, ModifierOp.PercentAdd, 0.25f, StackCurve.Linear),
                 new StatModifierEffect(StatId.MaxHp, ModifierOp.PercentAdd, -0.10f, StackCurve.Linear));
-            TrinketDef slippers = Trinket("Trinket_PoolSlippers", "test.pool_slippers", "Klapki z Basenu", Rarity.Uncommon,
+            TrinketDef slippers = Trinket("Trinket_PoolSlippers", "test.pool_slippers", "Pool Slippers", Rarity.Uncommon,
                 new StatModifierEffect(StatId.Dex, ModifierOp.Flat, 1f, StackCurve.Linear),
                 new StatModifierEffect(StatId.MoveSpeed, ModifierOp.PercentAdd, 0.15f, StackCurve.Linear));
-            TrinketDef grandpasDie = Trinket("Trinket_GrandpasDie", "test.grandpas_die", "Kostka z Kieszeni Dziadka", Rarity.Rare,
+            TrinketDef grandpasDie = Trinket("Trinket_GrandpasDie", "test.grandpas_die", "Grandpa's Pocket Die", Rarity.Rare,
                 new StatModifierEffect(StatId.SkillCheckBonus, ModifierOp.Flat, 1f, StackCurve.Linear));
-            TrinketDef clover = Trinket("Trinket_FourLeafClover", "test.four_leaf_clover", "Czterolistna koniczyna", Rarity.Uncommon,
+            TrinketDef clover = Trinket("Trinket_FourLeafClover", "test.four_leaf_clover", "Four-Leaf Clover", Rarity.Uncommon,
                 new StatModifierEffect(StatId.CritChance, ModifierOp.Flat, 0.1f, StackCurve.Hyperbolic));
-            TrinketDef amulet = Trinket("Trinket_FairAmulet", "test.fair_amulet", "Amulet z Odpustu", Rarity.Epic,
+            TrinketDef amulet = Trinket("Trinket_FairAmulet", "test.fair_amulet", "Church Fair Amulet", Rarity.Epic,
                 new StatModifierEffect(StatId.Lck, ModifierOp.Flat, 1f, StackCurve.Linear),
                 new StatModifierEffect(StatId.SkillCheckAdvantage, ModifierOp.Flat, 1f, StackCurve.Linear));
 
-            TalentDef lucky = Talent("Talent_Lucky", "test.lucky", "Szczęściarz", Rarity.Rare,
+            TalentDef lucky = Talent("Talent_Lucky", "test.lucky", "Lucky", Rarity.Rare,
                 new StatOnTriggerEffect(GameTrigger.BossKilled, StatId.Lck, ModifierOp.Flat, 1f));
-            TalentDef sageFist = Talent("Talent_SageFist", "test.sage_fist", "Pięść Mędrca", Rarity.Epic,
+            TalentDef sageFist = Talent("Talent_SageFist", "test.sage_fist", "Sage's Fist", Rarity.Epic,
                 new ScalingOverrideEffect(WeaponCategory.Arcane, Ability.Str));
-            TalentDef oxStrength = Talent("Talent_OxStrength", "test.ox_strength", "Siła Wołu", Rarity.Common,
+            TalentDef oxStrength = Talent("Talent_OxStrength", "test.ox_strength", "Ox Strength", Rarity.Common,
                 new StatModifierEffect(StatId.Str, ModifierOp.Flat, 3f, StackCurve.Linear));
 
-            SkillCheckSiteDef cat = Site("Site_CatOnTree", "test.site_cat", "Ściągnij kota z drzewa", animals, 12, clover);
-            SkillCheckSiteDef cart = Site("Site_OverturnedCart", "test.site_cart", "Podnieś przewrócony wóz", athletics, 15, energyDrink);
-            SkillCheckSiteDef vending = Site("Site_VendingMachine", "test.site_vending", "Przechytrz zaklęty automat", mechanisms, 14, grandpasDie);
+            SkillCheckSiteDef cat = Site("Site_CatOnTree", "test.site_cat", "Get the Cat Down from the Tree", animals, 12, clover);
+            SkillCheckSiteDef cart = Site("Site_OverturnedCart", "test.site_cart", "Lift the Overturned Cart", athletics, 15, energyDrink);
+            SkillCheckSiteDef vending = Site("Site_VendingMachine", "test.site_vending", "Outsmart the Enchanted Vending Machine", mechanisms, 14, grandpasDie);
 
             SandboxSettings settings = Asset<SandboxSettings>("SandboxSettings", s =>
             {

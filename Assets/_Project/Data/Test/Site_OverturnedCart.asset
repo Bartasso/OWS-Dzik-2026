@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Site_OverturnedCart
   m_EditorClassIdentifier: Game.Data::Game.Data.SkillCheckSiteDef
   _id: test.site_cart
-  _displayName: "Podnie\u015B przewr\xF3cony w\xF3z"
+  _displayName: Lift the Overturned Cart
   _skill: {fileID: 11400000, guid: c2dd9128b0e4c9db5b58cead19f44839, type: 2}
   _dc: 15
   _reward: {fileID: 11400000, guid: 10e261001e2a141e79e3170d68dc43f7, type: 2}

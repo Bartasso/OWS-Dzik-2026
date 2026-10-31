@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Trinket_FairAmulet
   m_EditorClassIdentifier: Game.Data::Game.Data.TrinketDef
   _id: test.fair_amulet
-  _displayName: Amulet z Odpustu
+  _displayName: Church Fair Amulet
   _rarity: 3
   _effects:
   - rid: 4857497913466028193

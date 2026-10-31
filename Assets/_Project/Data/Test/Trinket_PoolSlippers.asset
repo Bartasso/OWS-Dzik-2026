@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Trinket_PoolSlippers
   m_EditorClassIdentifier: Game.Data::Game.Data.TrinketDef
   _id: test.pool_slippers
-  _displayName: Klapki z Basenu
+  _displayName: Pool Slippers
   _rarity: 1
   _effects:
   - rid: 4857497913466028189

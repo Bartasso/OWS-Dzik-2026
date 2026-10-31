@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Weapon_FireballStaff
   m_EditorClassIdentifier: Game.Data::Game.Data.WeaponDef
   _id: test.fireball_staff
-  _displayName: Kostur Ognistych Kul
+  _displayName: Fireball Staff
   _category: 2
   _scalingAbility: 3
   _baseDamage: 10

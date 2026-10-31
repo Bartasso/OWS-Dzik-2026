@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Skill_MagicMechanisms
   m_EditorClassIdentifier: Game.Data::Game.Data.SkillDef
   _id: test.skill_magic_mechanisms
-  _displayName: Magiczne mechanizmy
+  _displayName: Magic Mechanisms
   _ability: 3

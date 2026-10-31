@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Skill_Athletics
   m_EditorClassIdentifier: Game.Data::Game.Data.SkillDef
   _id: test.skill_athletics
-  _displayName: "Si\u0142owanie"
+  _displayName: Athletics
   _ability: 0

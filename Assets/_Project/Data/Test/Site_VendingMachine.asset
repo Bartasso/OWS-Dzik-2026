@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Site_VendingMachine
   m_EditorClassIdentifier: Game.Data::Game.Data.SkillCheckSiteDef
   _id: test.site_vending
-  _displayName: "Przechytrz zakl\u0119ty automat"
+  _displayName: Outsmart the Enchanted Vending Machine
   _skill: {fileID: 11400000, guid: 4dd597fc168d19721a4eab96a9a4bae7, type: 2}
   _dc: 14
   _reward: {fileID: 11400000, guid: 38c7a7f6fb53962d2ac8ccb32951b818, type: 2}

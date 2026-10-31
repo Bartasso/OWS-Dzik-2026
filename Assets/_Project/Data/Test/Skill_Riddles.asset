@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Skill_Riddles
   m_EditorClassIdentifier: Game.Data::Game.Data.SkillDef
   _id: test.skill_riddles
-  _displayName: Zagadki
+  _displayName: Riddles
   _ability: 3

@@ -111,7 +111,7 @@ namespace Game.Tests.EditMode
         [Test]
         public void LuckyTalent_AddsLuckPerBossKilled()
         {
-            // "Szczęściarz": +1 LCK for every boss killed in the run.
+            // "Lucky": +1 LCK for every boss killed in the run.
             TalentDef lucky = _assets.Talent("talent.lucky",
                 new StatOnTriggerEffect(GameTrigger.BossKilled, StatId.Lck, ModifierOp.Flat, 1f));
             EffectLoadout loadout = Loadout();
@@ -158,7 +158,7 @@ namespace Game.Tests.EditMode
         [Test]
         public void ScalingTalent_ChangesWeaponAbility_UntilRemoved()
         {
-            // "Pięść Mędrca": spells scale with STR instead of INT.
+            // "Sage's Fist": spells scale with STR instead of INT.
             TalentDef sageFist = _assets.Talent("talent.wizard.sage_fist",
                 new ScalingOverrideEffect(WeaponCategory.Arcane, Ability.Str));
             EffectLoadout loadout = Loadout();

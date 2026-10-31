@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Talent_SageFist
   m_EditorClassIdentifier: Game.Data::Game.Data.TalentDef
   _id: test.sage_fist
-  _displayName: "Pi\u0119\u015B\u0107 M\u0119drca"
+  _displayName: Sage's Fist
   _rarity: 3
   _effects:
   - rid: 4857497913466028196
