@@ -31,7 +31,6 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 ## Architektura
 
 - [ ] **Efekty-zachowania i klasowe**: aura spowolnienia (Skarpety do Sandałów), Loki, Szał Piwny. Potrzebują prefabów lub interfejsów skilli klasowych w `IEffectContext`.
-- [ ] **Kontroler postaci**: Kinematic Character Controller (darmowy asset, nowy pakiet) czy własny kontroler kinematyczny? Obecny `PlayerMotor` (goły `CharacterController` w `Update`) jest tymczasowy i nie spełnia CLAUDE.md 5a.
 - [ ] **Promile i używki**: liczby (przyrost, spadek, siła buffu od promili), efekty urwanego filmu, czy cudze szoty mają osobny strumień RNG przy dropie (`Loot`?).
 - [ ] **Walidacja w buildzie release**: log, ekran błędu?
 - [ ] **Zapis meta-progresji**: format, lokalizacja, wersjonowanie.
@@ -62,3 +61,4 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 - 2026-10-31: **Sterowanie**: LPM atak, PPM skill broni aktywnej, F używka, E interakcja, Shift dash, Spacja skok, Ctrl ślizg. Bronie pasywne nie mają skilli (GDD sekcja 3).
 - 2026-10-31: **Gimmick pod F zastąpiony** pasywką klasową (`ClassPassive`) i używką (`Vice`) z paskiem promili (GDD sekcja 7, CLAUDE.md 5b).
 - 2026-10-31: **Tick ruchu**: ruch liczony w `FixedUpdate` z komend, kontroler kinematyczny (CLAUDE.md 5a). Wybór konkretnego kontrolera nadal otwarty.
+- 2026-11-01: **Kontroler postaci**: OpenKCC (Nicholas Maltbie, MIT) jako warstwa kolizji, rdzeń skopiowany do `Assets/Plugins/OpenKCC` i poprawiany u nas. Logika ruchu własna w `Gameplay`, liczona w stałym ticku z komend. KCC z Asset Store odrzucony (licencja Unity, nie do publicznego repo).

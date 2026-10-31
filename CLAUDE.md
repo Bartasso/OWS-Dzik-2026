@@ -98,7 +98,7 @@ Tests                  →  testowany moduł
 
 ### 5a. Ruch (GDD, sekcja 3)
 - Ruch liczony w stałym ticku (`FixedUpdate`) z komend, nie bezpośrednio z inputu. Stan ruchu (prędkość, ładunki dasha, liczba skoków, wall run) żyje w `Gameplay`.
-- Kontroler kinematyczny, nie fizyczny `Rigidbody` ani goły `CharacterController`. Wybór (Kinematic Character Controller czy własny) jeszcze otwarty: zapytaj przed implementacją.
+- Kontroler kinematyczny, nie fizyczny `Rigidbody` ani goły `CharacterController`. Kolizje: OpenKCC (MIT, rdzeń w `Assets/Plugins/OpenKCC`, nasza kopia do poprawiania); logika ruchu własna w `Gameplay`, OpenKCC tylko przesuwa kapsułę.
 - Wszystkie parametry ruchu (prędkości, czasy, limity) w `GameBalance` lub definicji postaci, nie w kodzie.
 - Modyfikatory ruchu z trinketów (liczba skoków, ładunki dasha) idą przez ten sam system modyfikatorów co cechy, nie przez `if` na konkretny przedmiot.
 

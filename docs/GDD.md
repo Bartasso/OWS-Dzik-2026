@@ -491,7 +491,7 @@ Modele w M0 i M1 to darmowe paczki low poly; własne modele z Blendera wchodzą 
 - [ ] Projekt pierwszego bossa.
 - [ ] Nazwa i wygląd portalu kończącego arenę.
 - [ ] Sterowanie: tylko mysz i klawiatura, czy też pad?
-- [ ] Kontroler postaci: Kinematic Character Controller (darmowy asset) czy własny kontroler kinematyczny?
+- [x] Kontroler postaci: OpenKCC (MIT) jako warstwa kolizji, logika ruchu własna.
 - [ ] Liczby promili (przyrost, spadek, siła buffu w zależności od promili) i efekty urwanego filmu do playtestów.
 - [ ] Fabuła i główny zły (kto i dlaczego więzi znajomych).
 - [ ] Biblioteka sieciowa do co-op.
