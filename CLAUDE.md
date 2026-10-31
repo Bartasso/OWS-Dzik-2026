@@ -61,7 +61,7 @@ Tests                  →  testowany moduł
 
 ### 1. Logika oddzielona od prezentacji (pod co-op)
 - Stan gry (HP, pozycje logiczne, ekwipunek, wyniki rzutów) żyje w `Gameplay`/`Core`.
-- `Presentation` tylko słucha zdarzeń (`OnDamageDealt`, `OnCrit`, `OnSkillCheckResolved`, `OnLevelUp`) i rysuje.
+- `Presentation` tylko słucha zdarzeń (`OnDamageDealt`, `OnCrit`, `OnSkillCheckResolved`, `OnLevelUp`, `OnViceUsed`, `OnBlackout`) i rysuje.
 - Wejście gracza zamieniane jest na komendy (`MoveCommand`, `UseSkillCommand`), a dopiero komendy zmieniają stan. Nigdy `Input` bezpośrednio w logice walki.
 
 ### 2. Dane w ScriptableObjectach
@@ -95,6 +95,19 @@ Tests                  →  testowany moduł
 ### 5. Walka (GDD, sekcja 5)
 - Trafienia zawsze trafiają. W walce **nie ma rzutów k20**.
 - Krytyk = szansa procentowa z `Rng.Combat` (bazowo 5% + LCK + trinkety), mnożnik bazowo ×2. Wartości bazowe w `GameBalance`.
+
+### 5a. Ruch (GDD, sekcja 3)
+- Ruch liczony w stałym ticku (`FixedUpdate`) z komend, nie bezpośrednio z inputu. Stan ruchu (prędkość, ładunki dasha, liczba skoków, wall run) żyje w `Gameplay`.
+- Kontroler kinematyczny, nie fizyczny `Rigidbody` ani goły `CharacterController`. Wybór (Kinematic Character Controller czy własny) jeszcze otwarty: zapytaj przed implementacją.
+- Wszystkie parametry ruchu (prędkości, czasy, limity) w `GameBalance` lub definicji postaci, nie w kodzie.
+- Modyfikatory ruchu z trinketów (liczba skoków, ładunki dasha) idą przez ten sam system modyfikatorów co cechy, nie przez `if` na konkretny przedmiot.
+
+### 5b. Używki i promile (GDD, sekcja 7)
+- Używka (`Vice`) to definicja w `Data/`: buff, czas trwania, cooldown, przyrost promili, efekt urwanego filmu, profil efektu ekranowego. Zero logiki konkretnej postaci w kodzie ogólnym.
+- Promile (`Intoxication`) to stan postaci w `Gameplay`: 0–100%, spadek w czasie, przekroczenie 100% wyzwala urwany film (`Blackout`), potem reset do 50%. Kac (`Hangover`) jako debuff po końcu buffu.
+- Efekty ekranowe (kołysanie, filtry, slow-motion, audio) tylko w `Presentation`, sterowane stanem promili i zdarzeniami. Zawsze przemnożone przez ustawienie intensywności (0–100%).
+- Slow-motion Sir Seby to efekt wizualny lub lokalny, nie zmiana `Time.timeScale` dla całej symulacji (co-op).
+- Toast (co-op): wykrywany w `Gameplay` z okna czasowego w `GameBalance`.
 
 ### 6. Skill checki k20 (GDD, sekcja 4)
 - Wszystkie rzuty k20 przechodzą przez jeden serwis `Core.SkillCheck`. Nigdzie indziej nie licz k20.
@@ -177,7 +190,9 @@ Uwaga: tryb batch nie zadziała, gdy ten sam projekt jest otwarty w edytorze.
 | Karta level-up / reroll | `LevelUpCard` / `Reroll` |
 | Broń aktywna / pasywna | `ActiveWeapon` / `PassiveWeapon` |
 | Ewolucja broni | `WeaponEvolution` |
-| Skill klasowy (gimmick) | `ClassSkill` |
+| Pasywka klasowa | `ClassPassive` |
+| Używka / Promile | `Vice` / `Intoxication` |
+| Kac / Urwany film / Toast | `Hangover` / `Blackout` / `Toast` |
 | Skill check / sytuacja na mapie | `SkillCheck` / `SkillCheckSite` |
 | Biegłość | `Proficiency` |
 | Trudność checku | `Dc` |
@@ -192,9 +207,11 @@ Uwaga: tryb batch nie zadziała, gdy ten sam projekt jest otwarty w edytorze.
 
 ## Postacie
 
-| Postać | Klasa | Cechy główne (+2) | Biegłości | Gimmick |
-|---|---|---|---|---|
-| Ada | Ranger | DEX, WIS | Zwierzęta, percepcja | Pies Loki (towarzysz) |
-| Bar | Barbarzyńca | STR, CON | Siłowanie, picie | Szał |
-| Sir Seba | Rycerz | STR, CHA | Perswazja, występy | Tarcza i Honor |
-| Albert | Wizard | INT, WIS | Zagadki, magiczne mechanizmy | Księga Czarów |
+| Postać | Klasa | Cechy główne (+2) | Biegłości | Pasywka | Używka (F) |
+|---|---|---|---|---|---|
+| Ada | Ranger | DEX, WIS | Zwierzęta, percepcja | Pies Loki | Dzikówka: Zew Dzika |
+| Bar | Barbarzyńca | STR, CON | Siłowanie, picie | Szał | Piwo: Szał Piwny |
+| Sir Seba | Rycerz | STR, CHA | Perswazja, występy | Honor | Wódka: Odwaga z Butelki |
+| Albert | Wizard | INT, WIS | Zagadki, magiczne mechanizmy | Księga Czarów | Papierosy: Dymek |
+
+Sterowanie: LPM atak, PPM skill broni aktywnej, F używka, E interakcja, Shift dash, Spacja skok, Ctrl ślizg. Bronie pasywne nie mają skilli.

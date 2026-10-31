@@ -31,7 +31,8 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 ## Architektura
 
 - [ ] **Efekty-zachowania i klasowe**: aura spowolnienia (Skarpety do Sandałów), Loki, Szał Piwny. Potrzebują prefabów lub interfejsów skilli klasowych w `IEffectContext`.
-- [ ] **Tick symulacji** pod co-op (`FixedUpdate`?) i czy `Gameplay` może używać CharacterController/Rigidbody.
+- [ ] **Kontroler postaci**: Kinematic Character Controller (darmowy asset, nowy pakiet) czy własny kontroler kinematyczny? Obecny `PlayerMotor` (goły `CharacterController` w `Update`) jest tymczasowy i nie spełnia CLAUDE.md 5a.
+- [ ] **Promile i używki**: liczby (przyrost, spadek, siła buffu od promili), efekty urwanego filmu, czy cudze szoty mają osobny strumień RNG przy dropie (`Loot`?).
 - [ ] **Walidacja w buildzie release**: log, ekran błędu?
 - [ ] **Zapis meta-progresji**: format, lokalizacja, wersjonowanie.
 - [ ] **Flow field na terenie 3D**: rozdzielczość, wysokości/piętra, separacja wrogów przy 300+.
@@ -42,7 +43,7 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 
 ## Rozstrzygnięte
 
-- 2026-10-29: Klawisz E = interakcja (skill checki, skrzynie, portal, Nocny). Skille broni pasywnych przeniesione na Q, R, C (GDD sekcja 3).
+- 2026-10-29: Klawisz E = interakcja (skill checki, skrzynie, portal, Nocny). ~~Skille broni pasywnych przeniesione na Q, R, C~~: nieaktualne, patrz 2026-10-31.
 - 2026-10-29: **Przerzut z LCK przy advantage/disadvantage**: przerzut tylko gdy *wybrany* wynik = 1, jedną kością, szansa przycięta do 0–100%. Wynik przerzutu ostateczny; przerzut na 20 liczy się jako Nat20.
 - 2026-10-29: **Wczytywanie `GameBalance`**: referencja z bootstrapu w Inspectorze (bez `Resources` i Addressables). Jeden asset w `Assets/_Project/Data/`.
 - 2026-10-29: **`Game.Core` ma `noEngineReferences: true`**: kompilator pilnuje, że Core to czysty C#.
@@ -58,3 +59,6 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 - 2026-10-30: **Zdarzenia**: C# `event` ze structami (`CombatEvents`), tylko Gameplay → Presentation/UI.
 - 2026-10-30: **Tymczasowa formuła obrażeń (M0, sandbox)**: `baza broni × max(0, 1 + 5% × cecha skalująca)`, krytyk `× max(1, bazowy mnożnik + bonus)`. Pełny pipeline nadal otwarty (punkt wyżej).
 - 2026-10-30: **Nat 20 w skill checku**: nagroda × `GameBalance._nat20RewardCopies` (na razie 2).
+- 2026-10-31: **Sterowanie**: LPM atak, PPM skill broni aktywnej, F używka, E interakcja, Shift dash, Spacja skok, Ctrl ślizg. Bronie pasywne nie mają skilli (GDD sekcja 3).
+- 2026-10-31: **Gimmick pod F zastąpiony** pasywką klasową (`ClassPassive`) i używką (`Vice`) z paskiem promili (GDD sekcja 7, CLAUDE.md 5b).
+- 2026-10-31: **Tick ruchu**: ruch liczony w `FixedUpdate` z komend, kontroler kinematyczny (CLAUDE.md 5a). Wybór konkretnego kontrolera nadal otwarty.

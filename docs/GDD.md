@@ -44,17 +44,46 @@ Run kończy się na trzy sposoby: śmiercią, rezygnacją w Nocnym albo pokonani
 
 ## 3. Sterowanie i walka
 
-Kamera TPP zza pleców jak w Risk of Rain 2. Walka jest hybrydą: jedna broń aktywna, którą celujesz, plus bronie pasywne działające same. Układ do weryfikacji w playtestach.
+Kamera TPP zza pleców jak w Risk of Rain 2. Ruch jest szybki i oparty na momentum, a broń strzela normalnie w każdym stanie ruchu (ślizg, powietrze, ściana). Walka jest hybrydą: jedna broń aktywna, którą celujesz, plus bronie pasywne działające same. Układ do weryfikacji w playtestach.
 
-### Sloty broni
+### Ruch
 
-| Slot | Ile | Działanie |
-| --- | --- | --- |
-| Broń aktywna | 1 | Celujesz i atakujesz ręcznie (LPM). Ma własny skill specjalny (PPM). |
-| Bronie pasywne | 3 | Działają automatycznie (orbita, aura, pociski, wieżyczka). Każda ma skill pod klawiszem (Q, R, C). |
-| Skill klasowy | 1 | Gimmick postaci (pies, szał, tarcza, księga), klawisz F. |
+Ruch jest wspólny dla wszystkich postaci (bez ruchu klasowego) i jest główną obroną przed hordą. Wartości liczbowe to propozycja startowa do balansu.
 
-Klawisz E to zawsze interakcja (skill checki, skrzynie, portal, sklep w Nocnym), nie skill broni.
+| Mechanika | Działanie |
+| --- | --- |
+| Bieg | Zawsze, bez staminy i bez klawisza sprintu. Szybkość rośnie z DEX. |
+| Skok | Pojedynczy bazowo. Kolejne skoki tylko z trinketów (stackują się: 2, 3, … skoki). Coyote time i bufor wciśnięcia skoku. |
+| Dash | Bazowo dla wszystkich: 1 ładunek, odnowienie ok. 2 s, i-frame'y ok. 0,2 s, działa też w powietrzu (jeden na skok). |
+| Slide | Kucnięcie w biegu. Utrzymuje prędkość, w dół zbocza przyspiesza, pod górę hamuje. |
+| Slide-jump | Skok ze ślizgu zachowuje prędkość; dobrze zgrane serie podbijają ją do miękkiego limitu. |
+| Wall run | Bieg po ścianie do ok. 1,5 s. Tej samej ściany nie można użyć ponownie bez dotknięcia ziemi lub innej ściany. |
+| Wall jump | Odbicie od ściany, przywraca jeden skok w powietrzu. |
+| Mantle | Automatyczne wciąganie się na krawędź po doskoczeniu. |
+| Kontrola w powietrzu | Ograniczona: można skręcać, nie można zahamować w miejscu. |
+| Obrażenia od upadku | Brak. |
+
+**Ulepszenia ruchu** pochodzą z trinketów i kart: kolejne skoki, ładunki dasha, szybsze odnowienie, efekty dasha (zostawia ogień, rani przy przejściu przez wrogów, odnawia się przy zabiciu).
+
+**Rozpęd:** sama prędkość nie zadaje obrażeń. Robią to tylko specjalne przedmioty, np. kolczasta zbroja, która przy szybkim biegu taranuje wrogów.
+
+**Feedback prędkości:** FOV rośnie z prędkością, speed lines, wiatr w audio.
+
+**Parkour w biomach:** Zaspa daje trzepaki, dachy garaży i balkony do wall runów; Las daje zbocza do ślizgów i grzyby-trampoliny.
+
+### Sterowanie i sloty broni
+
+| Klawisz | Akcja |
+| --- | --- |
+| LPM | Atak bronią aktywną (1 slot) |
+| PPM | Skill broni aktywnej |
+| F | Używka postaci: buff z długim cooldownem (sekcja 7) |
+| E | Interakcja (skill checki, skrzynie, portal, sklep w Nocnym) |
+| Shift | Dash |
+| Spacja | Skok |
+| Ctrl | Ślizg |
+
+Bronie pasywne (3 sloty) działają automatycznie (orbita, aura, pociski, wieżyczka) i nie mają własnych skilli. Mniej klawiszy, więcej uwagi na ruch.
 
 ### Bronie a klasy
 
@@ -221,14 +250,46 @@ Wypadają z przeciwników losowo i działają kilka–kilkanaście sekund. CHA w
 
 ## 7. Postacie
 
-W pierwszej wersji gramy czwórką znajomych. Każdy ma klasę, dwie cechy główne i własny gimmick pod klawiszem F. Gimmicki to propozycje do dopracowania.
+W pierwszej wersji gramy czwórką znajomych. Każdy ma klasę, dwie cechy główne, biegłości, pasywkę klasową i swoją używkę pod klawiszem F (inspiracja: Debauchery and Magic). Efekty to propozycje do dopracowania.
 
-| Postać | Rasa i klasa | Cechy główne (+2) | Biegłości w skill checkach | Gimmick (skill klasowy) | Startowa broń |
-| --- | --- | --- | --- | --- | --- |
-| Ada | Elfka, Ranger | DEX, WIS | Zwierzęta, percepcja | **Pies Loki**: towarzysz atakuje sam, skaluje się z WIS. F = komenda („Aport!” przynosi XP i złoto z okolicy, „Bierz!” skupia ataki na celu). | Łuk |
-| Bar | Krasnolud, Barbarzyńca | STR, CON | Siłowanie, picie | **Szał**: pasek rośnie od zadawanych i otrzymywanych obrażeń. F = szał (większe obrażenia i odporność, ale broń aktywna sama celuje w najbliższego wroga). | Topór dwuręczny |
-| Sir Seba | Człowiek, Rycerz | STR, CHA | Perswazja, występy | **Tarcza i Honor**: F = blok i taunt, wrogowie celują w niego. Honor rośnie w walce z elitami i bossami, daje bonus do obrażeń. | Miecz i tarcza (jedna broń) |
-| Albert | Człowiek, Wizard | INT, WIS | Zagadki, magiczne mechanizmy | **Księga Czarów**: zbiera ładunki zaklęć. F = rzuca losowy czar z księgi, talenty pozwalają wybierać lub wzmacniać czary. | Różdżka |
+| Postać | Rasa i klasa | Cechy główne (+2) | Biegłości | Pasywka klasowa | Używka (F) | Startowa broń |
+| --- | --- | --- | --- | --- | --- | --- |
+| Ada | Elfka, Ranger | DEX, WIS | Zwierzęta, percepcja | **Pies Loki**: towarzysz zawsze przy niej, atakuje sam, skaluje się z WIS | **Dzikówka** (nalewka): **Zew Dzika**, przez arenę przebiega stado dzików taranujących wrogów, Loki wpada w szał | Łuk |
+| Bar | Krasnolud, Barbarzyńca | STR, CON | Siłowanie, picie | **Szał**: pasek ładuje się od zadawanych i otrzymywanych obrażeń; pełny skraca cooldown piwa | **Piwo**: **Szał Piwny**, więcej obrażeń, odporność, odrzut wrogów; broń aktywna sama celuje w najbliższego wroga | Topór dwuręczny |
+| Sir Seba | Człowiek, Rycerz | STR, CHA | Perswazja, występy | **Honor**: rośnie w walce z elitami i bossami, daje bonus do obrażeń | **Wódka**: **Odwaga z Butelki**, tarcza blokuje kilka pierwszych trafień, taunt ściąga wrogów, rośnie honor | Miecz i tarcza (jedna broń) |
+| Albert | Człowiek, Wizard | INT, WIS | Zagadki, magiczne mechanizmy | **Księga Czarów**: zabici wrogowie dają ładunki, co kilka ładunków sam rzuca się losowy czar | **Papierosy**: **Dymek**, chmura dymu wokół niego spowalnia i truje wrogów, czary wzmocnione na czas trwania | Różdżka |
+
+### Używki i promile
+
+Używka to buff postaci pod F: ok. 10 s działania, cooldown ok. 45 s (wartości w definicji używki). Każda używka podnosi pasek promili, który nagradza ryzyko i karze przesadę.
+
+| Element | Działanie |
+| --- | --- |
+| Pasek promili | W rogu ekranu, 0–100%. U Alberta ten sam pasek nazywa się Nikotyna. |
+| Przyrost | Własna używka ok. +40%, cudzy szot lub fajka ok. +25% |
+| Spadek | Ok. 1,5% na sekundę |
+| Siła buffu | Rośnie z promilami w chwili użycia; mocniejszy jest też efekt na ekranie |
+| Kac | Po końcu buffu ok. 3 s spowolnienia ruchu (ok. −20%) |
+| Urwany film (powyżej 100%) | Komiczny debuff na ok. 3–4 s, potem pasek spada do 50% |
+
+Przy normalnym używaniu pasek nie przekracza 100%. Ryzyko pojawia się dopiero przy skracaniu cooldownu trinketami i piciu cudzych szotów.
+
+| Postać | Urwany film (propozycja) | Ekran pod wpływem |
+| --- | --- | --- |
+| Bar | Zasypia na stojąco i chrapie, nie rusza się | Kołysanie kamery, lekkie podwójne widzenie, przytłumione dźwięki |
+| Ada | Stado dzików taranuje też ją | Zielono-leśny filtr, kolory natury, odgłosy puszczy |
+| Sir Seba | Śpiewa biesiadnie: nie atakuje, a wszyscy wrogowie idą do niego | Patos: chwilowe slow-motion, złote słońce, chór |
+| Albert | Atak kaszlu: nie atakuje, stoi w swojej chmurze | Zadymiony ekran, filtr noir/sepia, jazz |
+
+### Rozwinięcia używek
+
+| Element | Działanie |
+| --- | --- |
+| Zagrycha (trinkety) | Kiszony Ogórek (brak kaca), Otwieracz z Breloczka (krótszy cooldown używki), Paczka Fajek (2 ładunki używki), Słone Paluszki (wolniejszy przyrost promili) |
+| Cudze używki | Nocny sprzedaje jednorazowe szoty i fajki innych postaci; rzadko wypadają też z wrogów. Działają jak krótka wersja buffu tamtej postaci i podnoszą promile. |
+| Stan a skill checki | Pod wpływem własnej używki: Bar +2 CHA i −2 DEX, Ada +2 WIS, Sir Seba +2 CHA, Albert +2 INT (wartości do balansu) |
+| Toast (co-op) | Dwóch graczy używa używki w ciągu 2 s: „Na zdrowie!”, wspólny krótki bonus dla obu |
+| Talenty używki | Część talentów klasowych zmienia używkę, np. Bar „Beczka” (piwo leczy), Albert „Cygaro” (większa chmura, dłuższy cooldown) |
 
 ### Odblokowanie
 
@@ -236,7 +297,7 @@ Na start grywalna jest jedna postać. Pozostałe są **uwięzione w runach**: ur
 
 ### Kolejni znajomi
 
-Nowe postacie dochodzą jak content po pierwszej wersji. Każda potrzebuje: klasy, 2 cech głównych, biegłości, gimmicku, startowej broni, puli talentów klasowych (ok. 15) i questa w ośrodku.
+Nowe postacie dochodzą jak content po pierwszej wersji. Każda potrzebuje: klasy, 2 cech głównych, biegłości, pasywki klasowej, używki z efektem ekranowym i urwanym filmem, startowej broni, puli talentów klasowych (ok. 15) i questa w ośrodku.
 
 ## 8. Areny, biomy i przeciwnicy
 
@@ -259,6 +320,7 @@ Po każdej arenie poza ostatnią gracz trafia do Nocnego: całodobowego sklepiku
 | Co | Działanie |
 | --- | --- |
 | Sklep | Ubrania i trinkety za złoto z runu, ceny niższe z CHA |
+| Lada z używkami | Jednorazowe szoty i fajki innych postaci (sekcja 7) |
 | Trening | Darmowy wybór 1 z 3 ulepszeń cech |
 | Dodatkowe punkty cech | Za złoto, cena rośnie z każdym zakupem |
 | Rezygnacja z runu | Kończy run i zamienia ekwipunek na złoto dla ośrodka (sekcja 9) |
@@ -352,6 +414,10 @@ Znajomi w ośrodku dają wyzwania, np. „wygraj run Barem bez zbroi”, „zdaj
 | Efekty | Czytelne z daleka, mocne kolory dla krytyków i Nat 20. |
 | Spójność | Jedna paleta kolorów dla całej gry, żeby mieszanka darmowych i własnych assetów nie gryzła się stylem. |
 
+**Suwak intensywności efektów ekranowych** (0–100%) w ustawieniach: kołysanie kamery po używkach przy szybkim ruchu i rosnącym FOV może części graczy szkodzić. Domyślnie 100%.
+
+**Ocena wiekowa:** alkohol i papierosy jako wzmocnienie to w systemach ocen (PEGI, ESRB) zwykle oznaczenie 16+. Przy wydaniu na Steam trzeba to zaznaczyć w ankiecie treści.
+
 ## 11. Technologia
 
 Silnik: **Unity 6.6 (6000.6.7f1), C#, URP**. Znam Unity, AI dobrze pisze C# pod Unity, a sklep z darmowymi assetami low poly przyspiesza start.
@@ -405,7 +471,7 @@ Cel to grywalny co-op ze znajomymi (M2) w około rok, bez sztywnych terminów. K
 
 | Etap | Zakres | Warunek przejścia |
 | --- | --- | --- |
-| M0 · Prototyp | 1 postać, 1 arena, 3 bronie, 5 wrogów, 1 boss, karty level-up, cechy, talenty | Walka daje frajdę |
+| M0 · Prototyp | 1 postać, 1 arena, ruch (bieg, skok, dash, ślizg), 3 bronie, 5 wrogów, 1 boss, karty level-up, cechy, talenty, używka postaci | Walka daje frajdę |
 | M1 · Vertical slice | 4 postacie, 1 biom (3–4 areny), 10 broni, 5 ewolucji, ubrania i trinkety, Nocny, skill checki, hub jako klikalna mapa | Znajomi grają pełny run |
 | M2 · Co-op (cel na rok) | 2–4 graczy online, lobby w ośrodku, synchronizacja lootu i skill checków | Co-op jest stabilny |
 | M3 · Rozbudowa | Kolejne biomy, nowi znajomi, fabuła i główny zły, ewentualnie Steam | — |
@@ -425,6 +491,8 @@ Modele w M0 i M1 to darmowe paczki low poly; własne modele z Blendera wchodzą 
 - [ ] Projekt pierwszego bossa.
 - [ ] Nazwa i wygląd portalu kończącego arenę.
 - [ ] Sterowanie: tylko mysz i klawiatura, czy też pad?
+- [ ] Kontroler postaci: Kinematic Character Controller (darmowy asset) czy własny kontroler kinematyczny?
+- [ ] Liczby promili (przyrost, spadek, siła buffu w zależności od promili) i efekty urwanego filmu do playtestów.
 - [ ] Fabuła i główny zły (kto i dlaczego więzi znajomych).
 - [ ] Biblioteka sieciowa do co-op.
 - [ ] Tytuł gry (roboczy: Gra o dzikach Alberta).
