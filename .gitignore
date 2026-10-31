@@ -115,3 +115,9 @@ InitTestScene*.unity*
 
 # Test results from batch runs
 /[Tt]est[Rr]esults/
+
+# Purchased third-party assets: their licenses forbid redistribution and this repo is public.
+# Import them locally from the archives, see docs/THIRD_PARTY.md.
+/[Aa]ssets/ThirdParty/
+/[Aa]ssets/ThirdParty.meta
+/zips/

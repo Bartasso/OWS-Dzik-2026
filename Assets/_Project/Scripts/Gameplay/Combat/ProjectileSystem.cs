@@ -37,9 +37,12 @@ namespace Game.Gameplay.Combat
                 return;
             }
 
+            Vector3 heading = direction.normalized;
             view.position = origin;
+            // Views with a trail (sprite fireballs) need to point along the flight.
+            view.rotation = Quaternion.LookRotation(heading);
             view.localScale = Vector3.one * (weapon.ProjectileRadius * 2f);
-            _flights.Add(new Flight(view, weapon, direction.normalized));
+            _flights.Add(new Flight(view, weapon, heading));
         }
 
         private void Update()

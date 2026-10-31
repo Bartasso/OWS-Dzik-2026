@@ -14,6 +14,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using static Game.Editor.SceneBuildHelpers;
 using static Game.Editor.SerializedFields;
 using Object = UnityEngine.Object;
 
@@ -64,7 +65,7 @@ namespace Game.Editor
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             Transform fireballPrefab = BuildPrimitivePrefab("Fireball", PrimitiveType.Sphere, GetMaterial("Fireball", new Color(1f, 0.45f, 0.05f))).transform;
             Enemy enemyPrefab = BuildPrimitivePrefab("Enemy", PrimitiveType.Capsule, GetMaterial("Enemy", new Color(0.8f, 0.15f, 0.15f))).AddComponentToPrefab<Enemy>();
-            TextMesh numberPrefab = BuildNumberPrefab(font);
+            TextMesh numberPrefab = BuildNumberPrefab(PrefabFolder, font);
 
             BuildScene(scene, data, input, font, fireballPrefab, enemyPrefab, numberPrefab);
             AssetDatabase.SaveAssets();
@@ -219,39 +220,6 @@ namespace Game.Editor
             Label(root.transform, trinket.DisplayName, 1.6f, camera, font);
         }
 
-        private static void Label(Transform parent, string text, float height, Camera camera, Font font)
-        {
-            var label = new GameObject("Label");
-            label.transform.SetParent(parent, false);
-            label.transform.localPosition = Vector3.up * height;
-            TextMesh mesh = label.AddComponent<TextMesh>();
-            ConfigureText(mesh, font, 0.05f);
-            mesh.text = text;
-            var billboard = label.AddComponent<Billboard>();
-            Edit(billboard, s => SetObject(s, "_camera", camera));
-        }
-
-        private static TextMesh BuildNumberPrefab(Font font)
-        {
-            var go = new GameObject("DamageNumber");
-            TextMesh mesh = go.AddComponent<TextMesh>();
-            ConfigureText(mesh, font, 0.06f);
-            mesh.text = "0";
-            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(go, $"{PrefabFolder}/DamageNumber.prefab");
-            Object.DestroyImmediate(go);
-            return prefab.GetComponent<TextMesh>();
-        }
-
-        private static void ConfigureText(TextMesh mesh, Font font, float characterSize)
-        {
-            mesh.font = font;
-            mesh.GetComponent<MeshRenderer>().sharedMaterial = font.material;
-            mesh.fontSize = 64;
-            mesh.characterSize = characterSize;
-            mesh.anchor = TextAnchor.MiddleCenter;
-            mesh.alignment = TextAlignment.Center;
-        }
-
         private static GameObject BuildPrimitivePrefab(string name, PrimitiveType type, Material material)
         {
             GameObject go = Primitive(name, type, null, Vector3.zero, Vector3.one, material, keepCollider: false);
@@ -260,92 +228,6 @@ namespace Game.Editor
             return prefab;
         }
 
-        private static T AddComponentToPrefab<T>(this GameObject prefab)
-            where T : Component
-        {
-            string path = AssetDatabase.GetAssetPath(prefab);
-            GameObject contents = PrefabUtility.LoadPrefabContents(path);
-            contents.AddComponent<T>();
-            PrefabUtility.SaveAsPrefabAsset(contents, path);
-            PrefabUtility.UnloadPrefabContents(contents);
-            return AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<T>();
-        }
-
-        private static GameObject Primitive(
-            string name, PrimitiveType type, Transform parent, Vector3 localPosition, Vector3 localScale, Material material, bool keepCollider = true)
-        {
-            GameObject go = GameObject.CreatePrimitive(type);
-            go.name = name;
-            if (parent != null)
-            {
-                go.transform.SetParent(parent, false);
-            }
-
-            go.transform.localPosition = localPosition;
-            go.transform.localScale = localScale;
-            go.GetComponent<Renderer>().sharedMaterial = material;
-            if (!keepCollider)
-            {
-                Object.DestroyImmediate(go.GetComponent<Collider>());
-            }
-
-            return go;
-        }
-
-        private static Material GetMaterial(string name, Color color)
-        {
-            string path = $"{ArtFolder}/{name}.mat";
-            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material == null)
-            {
-                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-                if (shader == null)
-                {
-                    throw new InvalidOperationException("URP Lit shader not found");
-                }
-
-                material = new Material(shader);
-                AssetDatabase.CreateAsset(material, path);
-            }
-
-            material.SetColor("_BaseColor", color);
-            EditorUtility.SetDirty(material);
-            return material;
-        }
-
-        private static T Disabled<T>(T behaviour)
-            where T : Behaviour
-        {
-            behaviour.enabled = false;
-            return behaviour;
-        }
-
-        private static void EnsureFolder(string path)
-        {
-            if (AssetDatabase.IsValidFolder(path))
-            {
-                return;
-            }
-
-            int slash = path.LastIndexOf('/');
-            string parent = path.Substring(0, slash);
-            EnsureFolder(parent);
-            AssetDatabase.CreateFolder(parent, path.Substring(slash + 1));
-        }
-
-        private static void AddToBuildSettings(string path)
-        {
-            var scenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
-            foreach (EditorBuildSettingsScene existing in scenes)
-            {
-                if (existing.path == path)
-                {
-                    return;
-                }
-            }
-
-            scenes.Add(new EditorBuildSettingsScene(path, true));
-            EditorBuildSettings.scenes = scenes.ToArray();
-        }
+        private static Material GetMaterial(string name, Color color) => SceneBuildHelpers.GetMaterial(ArtFolder, name, color);
     }
 }

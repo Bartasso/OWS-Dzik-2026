@@ -7,12 +7,14 @@ namespace Game.Presentation
     /// <summary>Greys out a site once it has been attempted.</summary>
     public sealed class SkillCheckSitePresenter : MonoBehaviour
     {
-        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-
         [SerializeField] private SkillCheckSite _site;
         [SerializeField] private Renderer _renderer;
         [SerializeField] private Color _lockedColor = new Color(0.3f, 0.3f, 0.3f);
 
+        [Tooltip("Tint property of the renderer's shader: _BaseColor for URP Lit, _Color for the PSX kits.")]
+        [SerializeField] private string _colorProperty = "_BaseColor";
+
+        private int _colorId;
         private MaterialPropertyBlock _block;
         private bool _shownLocked;
 
@@ -28,6 +30,7 @@ namespace Game.Presentation
                 throw new InvalidOperationException($"{name}: missing Renderer reference");
             }
 
+            _colorId = Shader.PropertyToID(_colorProperty);
             _block = new MaterialPropertyBlock();
         }
 
@@ -39,7 +42,7 @@ namespace Game.Presentation
             }
 
             _shownLocked = _site.IsLocked;
-            _block.SetColor(BaseColorId, _lockedColor);
+            _block.SetColor(_colorId, _lockedColor);
             _renderer.SetPropertyBlock(_shownLocked ? _block : null);
         }
     }
