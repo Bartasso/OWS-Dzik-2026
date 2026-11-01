@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Data;
 using Game.Gameplay;
 using Game.Gameplay.Combat;
 using Game.Gameplay.Enemies;
@@ -45,17 +46,17 @@ namespace Game.Editor
         [MenuItem("Tools/Sandbox/Build Sandbox Scene")]
         public static void Build()
         {
-            Build(ScenePath, BuildObstacles);
+            Build(ScenePath, BuildObstacles, enemies: true);
         }
 
         /// <summary>The sandbox with a movement course (ramps, stairs, low beam) instead of the obstacles.</summary>
         [MenuItem("Tools/Sandbox/Build Movement Test Scene")]
         public static void BuildMovementTest()
         {
-            Build(MovementScenePath, (camera, font) => MovementCourseBuilder.Build(GetMaterial, camera, font));
+            Build(MovementScenePath, (camera, font) => MovementCourseBuilder.Build(GetMaterial, camera, font), enemies: false);
         }
 
-        private static void Build(string scenePath, Action<Camera, Font> buildLevel)
+        private static void Build(string scenePath, Action<Camera, Font> buildLevel, bool enemies)
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             {
@@ -81,7 +82,8 @@ namespace Game.Editor
             Enemy enemyPrefab = BuildPrimitivePrefab("Enemy", PrimitiveType.Capsule, GetMaterial("Enemy", new Color(0.8f, 0.15f, 0.15f))).AddComponentToPrefab<Enemy>();
             TextMesh numberPrefab = BuildNumberPrefab(PrefabFolder, font);
 
-            BuildScene(scene, scenePath, buildLevel, data, input, font, fireballPrefab, enemyPrefab, numberPrefab);
+            EnemySpawnSettings spawns = enemies ? data.Spawns : data.NoSpawns;
+            BuildScene(scene, scenePath, buildLevel, data, spawns, input, font, fireballPrefab, enemyPrefab, numberPrefab);
             AssetDatabase.SaveAssets();
             Debug.Log($"Sandbox scene built: {scenePath}. Press Play.");
         }
@@ -99,6 +101,7 @@ namespace Game.Editor
             string scenePath,
             Action<Camera, Font> buildLevel,
             SandboxData data,
+            EnemySpawnSettings spawns,
             InputActionAsset input,
             Font font,
             Transform fireballPrefab,
@@ -175,7 +178,7 @@ namespace Game.Editor
             {
                 SetObject(s, "_balance", data.Balance);
                 SetObject(s, "_character", data.Albert);
-                SetObject(s, "_spawnSettings", data.Spawns);
+                SetObject(s, "_spawnSettings", spawns);
                 SetObject(s, "_playerAim", aim);
                 SetObject(s, "_playerMotor", motor);
                 SetObject(s, "_playerShooter", shooter);
@@ -187,7 +190,7 @@ namespace Game.Editor
                 SetObject(s, "_projectilePrefab", fireballPrefab);
                 SetInt(s, "_projectilePoolSize", 128);
                 SetObject(s, "_enemyPrefab", enemyPrefab);
-                SetInt(s, "_enemyPoolSize", data.Spawns.MaxAlive + 10);
+                SetInt(s, "_enemyPoolSize", spawns.MaxAlive + 10);
                 SetObjects(s, "_skillCheckSites", sites.ToArray());
             });
 
@@ -205,6 +208,7 @@ namespace Game.Editor
                 SetObject(s, "_bootstrap", bootstrap);
                 SetObject(s, "_settings", data.Settings);
                 SetObject(s, "_playerHealth", health);
+                SetObject(s, "_playerMotor", motor);
                 SetObject(s, "_playerShooter", shooter);
                 SetObject(s, "_interactor", interactor);
                 SetObject(s, "_enemySpawner", spawner);

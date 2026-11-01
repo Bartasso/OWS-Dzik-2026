@@ -6,13 +6,16 @@ namespace Game.Editor
 {
     /// <summary>
     /// Primitive geometry for testing movement: up-and-down hills of several angles, a walkable and a
-    /// too-steep ramp, stairs to a long slide slope, a low beam to slide under and a wall.
+    /// too-steep ramp, stairs to a long slide slope, a half-pipe, a low beam to slide under and a wall.
     /// Stays clear of the sandbox's skill check sites and pickups around the origin.
     /// </summary>
     internal static class MovementCourseBuilder
     {
         private const float Thickness = 0.5f;
         private const float Width = 6f;
+
+        // Half-pipe side profile from the flat bottom outwards: each segment is steeper than the last.
+        private static readonly float[] HalfPipeAngles = { 8f, 16f, 24f, 32f, 40f, 48f };
 
         public static void Build(Func<string, Color, Material> getMaterial, Camera camera, Font font)
         {
@@ -52,6 +55,8 @@ namespace Game.Editor
             Box(root, "Beam", new Vector3(18f, clearance, -18.2f), new Vector3(6f, 0.4f, 0.4f), beam);
             Sign(root, new Vector3(21f, clearance + 0.4f, -18f), "Slide under (Ctrl)", camera, font);
 
+            HalfPipe(root, new Vector3(0f, 0f, 31f), ramp, block, camera, font);
+
             // Wall for later wall runs.
             Box(root, "Wall", new Vector3(40f, 0f, -10f), new Vector3(1f, 4f, 25f), block);
         }
@@ -77,8 +82,38 @@ namespace Game.Editor
             Sign(root, start + Vector3.right * (run + plateau * 0.5f) + Vector3.up * height, label, camera, font);
         }
 
-        /// <summary>Slab whose top surface starts on the ground at the low edge and rises along a direction.</summary>
-        private static void Ramp(Transform root, string name, Vector3 lowEdgeCenter, Vector3 direction, float run, float angle, Material material)
+        /// <summary>
+        /// Valley across X: flat bottom, sides curving up through steeper and steeper segments to platforms,
+        /// for sliding down one side and carrying the speed up the other.
+        /// </summary>
+        private static void HalfPipe(Transform root, Vector3 center, Material ramp, Material block, Camera camera, Font font)
+        {
+            const float bottomHalfWidth = 3f;
+            const float segmentRun = 2.5f;
+            const float length = 14f;
+            const float platformWidth = 3f;
+
+            float height = 0f;
+            foreach (float side in new[] { 1f, -1f })
+            {
+                Vector3 outwards = Vector3.right * side;
+                Vector3 edge = center + outwards * bottomHalfWidth;
+                foreach (float angle in HalfPipeAngles)
+                {
+                    Ramp(root, $"Half-pipe {angle}°", edge, outwards, segmentRun, angle, ramp, length);
+                    edge += outwards * segmentRun + Vector3.up * (segmentRun * Mathf.Tan(angle * Mathf.Deg2Rad));
+                }
+
+                height = edge.y;
+                Vector3 platformMin = new Vector3(Mathf.Min(edge.x, edge.x + side * platformWidth), 0f, center.z - length * 0.5f);
+                Box(root, "Half-pipe Platform", platformMin, new Vector3(platformWidth, height, length), block);
+            }
+
+            Sign(root, center + Vector3.up * 0.5f, $"Half-pipe: {HalfPipeAngles[0]}°-{HalfPipeAngles[HalfPipeAngles.Length - 1]}° sides, {height:0.#} m deep", camera, font);
+        }
+
+        /// <summary>Slab whose top surface starts at the low edge and rises along a direction.</summary>
+        private static void Ramp(Transform root, string name, Vector3 lowEdgeCenter, Vector3 direction, float run, float angle, Material material, float width = Width)
         {
             float radians = angle * Mathf.Deg2Rad;
             float rise = run * Mathf.Tan(radians);
@@ -86,7 +121,7 @@ namespace Game.Editor
             Vector3 topCenter = lowEdgeCenter + direction * (run * 0.5f) + Vector3.up * (rise * 0.5f);
             Vector3 center = topCenter - rotation * Vector3.up * (Thickness * 0.5f);
 
-            GameObject slab = Primitive(name, PrimitiveType.Cube, root, center, new Vector3(Width, Thickness, run / Mathf.Cos(radians)), material);
+            GameObject slab = Primitive(name, PrimitiveType.Cube, root, center, new Vector3(width, Thickness, run / Mathf.Cos(radians)), material);
             slab.transform.localRotation = rotation;
             slab.isStatic = true;
         }

@@ -13,6 +13,9 @@ namespace Game.Editor
         public GameBalance Balance;
         public CharacterDef Albert;
         public EnemySpawnSettings Spawns;
+
+        /// <summary>No automatic spawns (max alive 0, no boss after kills); the debug panel can still spawn a boss.</summary>
+        public EnemySpawnSettings NoSpawns;
         public SkillCheckSiteDef[] Sites;
         public TrinketDef[] PickupTrinkets;
         public SandboxSettings Settings;
@@ -80,6 +83,17 @@ namespace Game.Editor
                 SetInt(s, "_bossEveryKills", 25);
             });
 
+            EnemySpawnSettings noSpawns = Asset<EnemySpawnSettings>("EnemySpawnSettings_None", s =>
+            {
+                SetObject(s, "_regularEnemy", goblin);
+                SetObject(s, "_boss", owlbear);
+                SetFloat(s, "_spawnInterval", 1f);
+                SetInt(s, "_maxAlive", 0);
+                SetFloat(s, "_spawnRadiusMin", 14f);
+                SetFloat(s, "_spawnRadiusMax", 22f);
+                SetInt(s, "_bossEveryKills", 0);
+            });
+
             TrinketDef energyDrink = Trinket("Trinket_EnergyDrink", "test.energy_drink", "Night Shop Energy Drink", Rarity.Rare,
                 new StatModifierEffect(StatId.AttackSpeed, ModifierOp.PercentAdd, 0.25f, StackCurve.Linear),
                 new StatModifierEffect(StatId.MaxHp, ModifierOp.PercentAdd, -0.10f, StackCurve.Linear));
@@ -118,6 +132,7 @@ namespace Game.Editor
                 Balance = balance,
                 Albert = albert,
                 Spawns = spawns,
+                NoSpawns = noSpawns,
                 Sites = new[] { cat, cart, vending },
                 PickupTrinkets = new[] { energyDrink, slippers, grandpasDie, clover, amulet },
                 Settings = settings,
@@ -163,12 +178,11 @@ namespace Game.Editor
                 });
             }
 
-            if (balance.Movement.Slide == null || balance.Movement.Slide.StartSpeed <= 0f)
+            if (balance.Movement.Slide == null || balance.Movement.Slide.Height <= 0f)
             {
                 Edit(balance, s =>
                 {
-                    SetFloat(s, "_movement._slide._startSpeed", 4f);
-                    SetFloat(s, "_movement._slide._stopSpeed", 2.5f);
+                    SetFloat(s, "_movement._slide._crawlSpeed", 2.5f);
                     SetFloat(s, "_movement._slide._friction", 4f);
                     SetFloat(s, "_movement._slide._slopeFactor", 1f);
                     SetFloat(s, "_movement._slide._steering", 4f);

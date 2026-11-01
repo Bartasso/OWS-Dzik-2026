@@ -43,8 +43,7 @@ MonoBehaviour:
       _invulnerability: 0.2
       _baseCharges: 1
     _slide:
-      _startSpeed: 4
-      _stopSpeed: 2.5
+      _crawlSpeed: 2.5
       _friction: 4
       _slopeFactor: 1
       _steering: 4

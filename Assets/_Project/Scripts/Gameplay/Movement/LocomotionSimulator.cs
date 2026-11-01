@@ -79,7 +79,7 @@ namespace Game.Gameplay.Movement
 
             if (!_dash.Active)
             {
-                _slide.Update(input.SlideHeld, grounded && !JumpedThisTick, input.CanStand, _horizontal.magnitude, deltaTime);
+                _slide.Update(input.SlideHeld, grounded && !JumpedThisTick, input.CanStand, deltaTime);
             }
 
             UpdateVertical(grounded, deltaTime);

@@ -150,6 +150,7 @@ namespace Game.Editor
                 SetObject(s, "_bootstrap", bootstrap);
                 SetObject(s, "_settings", data.Settings);
                 SetObject(s, "_playerHealth", health);
+                SetObject(s, "_playerMotor", motor);
                 SetObject(s, "_playerShooter", shooter);
                 SetObject(s, "_interactor", interactor);
                 SetObject(s, "_enemySpawner", spawner);

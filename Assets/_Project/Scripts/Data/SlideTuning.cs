@@ -1,18 +1,20 @@
 using System;
 using Game.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Data
 {
-    /// <summary>Slide and slide-jump parameters (GDD section 3).</summary>
+    /// <summary>
+    /// Slide and slide-jump parameters (GDD section 3). The slide starts at any speed, even standing,
+    /// and lasts while the key is held.
+    /// </summary>
     [Serializable]
     public sealed class SlideTuning
     {
-        [Tooltip("Minimum horizontal speed in m/s to start a slide.")]
-        [SerializeField] private float _startSpeed;
-
-        [Tooltip("Below this speed in m/s the slide ends (if there is room to stand).")]
-        [SerializeField] private float _stopSpeed;
+        [Tooltip("Speed in m/s of crawling out from under a low ceiling after the slide key is released.")]
+        [FormerlySerializedAs("_stopSpeed")]
+        [SerializeField] private float _crawlSpeed;
 
         [Tooltip("m/s² of speed lost while sliding on flat ground.")]
         [SerializeField] private float _friction;
@@ -40,8 +42,7 @@ namespace Game.Data
         }
 
         public SlideTuning(
-            float startSpeed,
-            float stopSpeed,
+            float crawlSpeed,
             float friction,
             float slopeFactor,
             float steering,
@@ -50,8 +51,7 @@ namespace Game.Data
             float jumpBoostWindow,
             float softSpeedCap)
         {
-            _startSpeed = startSpeed;
-            _stopSpeed = stopSpeed;
+            _crawlSpeed = crawlSpeed;
             _friction = friction;
             _slopeFactor = slopeFactor;
             _steering = steering;
@@ -61,9 +61,7 @@ namespace Game.Data
             _softSpeedCap = softSpeedCap;
         }
 
-        public float StartSpeed => _startSpeed;
-
-        public float StopSpeed => _stopSpeed;
+        public float CrawlSpeed => _crawlSpeed;
 
         public float Friction => _friction;
 
@@ -81,8 +79,7 @@ namespace Game.Data
 
         public void Validate(ValidationReport report, UnityEngine.Object owner)
         {
-            DataChecks.Positive(report, owner, "slide." + nameof(_startSpeed), _startSpeed);
-            DataChecks.NotNegative(report, owner, "slide." + nameof(_stopSpeed), _stopSpeed);
+            DataChecks.Positive(report, owner, "slide." + nameof(_crawlSpeed), _crawlSpeed);
             DataChecks.NotNegative(report, owner, "slide." + nameof(_friction), _friction);
             DataChecks.NotNegative(report, owner, "slide." + nameof(_slopeFactor), _slopeFactor);
             DataChecks.NotNegative(report, owner, "slide." + nameof(_steering), _steering);
@@ -90,11 +87,6 @@ namespace Game.Data
             DataChecks.NotNegative(report, owner, "slide." + nameof(_jumpBoost), _jumpBoost);
             DataChecks.NotNegative(report, owner, "slide." + nameof(_jumpBoostWindow), _jumpBoostWindow);
             DataChecks.Positive(report, owner, "slide." + nameof(_softSpeedCap), _softSpeedCap);
-
-            if (_stopSpeed >= _startSpeed)
-            {
-                report.AddError(owner.name, $"slide.{nameof(_stopSpeed)} ({_stopSpeed}) must be below slide.{nameof(_startSpeed)} ({_startSpeed})", owner);
-            }
         }
     }
 }

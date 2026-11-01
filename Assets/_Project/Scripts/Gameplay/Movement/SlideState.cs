@@ -5,13 +5,15 @@ using UnityEngine;
 namespace Game.Gameplay.Movement
 {
     /// <summary>
-    /// Slide while running: keeps speed with low friction, gains it downhill and loses it uphill, steers
-    /// without changing speed. Stays crouched while there is no room to stand.
+    /// Slide while the key is held, from any speed: keeps speed with low friction until it stops, gains it
+    /// downhill (also from standstill) and loses it uphill, steers without adding speed. After the key is
+    /// released it stays crouched while there is no room to stand, crawling out.
     /// </summary>
     public sealed class SlideState
     {
         private readonly SlideTuning _tuning;
 
+        private bool _held;
         private float _timeSinceStart;
 
         public SlideState(SlideTuning tuning)
@@ -21,14 +23,14 @@ namespace Game.Gameplay.Movement
 
         public bool Active { get; private set; }
 
-        /// <summary>Starts or ends the slide for this tick from the input and the current speed.</summary>
-        public void Update(bool held, bool grounded, bool canStand, float horizontalSpeed, float deltaTime)
+        /// <summary>Starts or ends the slide for this tick.</summary>
+        public void Update(bool held, bool grounded, bool canStand, float deltaTime)
         {
+            _held = held;
             if (Active)
             {
                 _timeSinceStart += deltaTime;
-                bool wantsToStop = !held || horizontalSpeed < _tuning.StopSpeed;
-                if (!grounded || (wantsToStop && canStand))
+                if (!grounded || (!held && canStand))
                 {
                     Active = false;
                 }
@@ -36,7 +38,7 @@ namespace Game.Gameplay.Movement
                 return;
             }
 
-            if (held && grounded && horizontalSpeed >= _tuning.StartSpeed)
+            if (held && grounded)
             {
                 Active = true;
                 _timeSinceStart = 0f;
@@ -56,21 +58,21 @@ namespace Game.Gameplay.Movement
             float speed = horizontal.magnitude;
             float braking = _tuning.Friction + (speed > _tuning.SoftSpeedCap ? overspeedDeceleration : 0f);
             float newSpeed = Mathf.Max(0f, speed - braking * deltaTime);
-
             Vector3 direction = speed > 0f ? horizontal / speed : Vector3.zero;
-            if (wish.sqrMagnitude <= 0f)
+
+            if (!_held && wish.sqrMagnitude > 0f && newSpeed < _tuning.CrawlSpeed)
             {
-                return direction * newSpeed;
+                // Key released but no room to stand: crawl out from under the ceiling.
+                return Vector3.MoveTowards(direction * newSpeed, wish * _tuning.CrawlSpeed, (_tuning.Friction + _tuning.Steering) * deltaTime);
             }
 
-            if (newSpeed < _tuning.StopSpeed)
+            if (wish.sqrMagnitude > 0f && newSpeed > 0f)
             {
-                // Too slow to slide but kept crouched by a low ceiling: crawl out at the stop speed.
-                return Vector3.MoveTowards(direction * newSpeed, wish * _tuning.StopSpeed, (_tuning.Friction + _tuning.Steering) * deltaTime);
+                Vector3 steered = direction * newSpeed + wish * (_tuning.Steering * deltaTime);
+                direction = steered.sqrMagnitude > 0f ? steered.normalized : direction;
             }
 
-            Vector3 steered = direction * newSpeed + wish * (_tuning.Steering * deltaTime);
-            return (steered.sqrMagnitude > 0f ? steered.normalized : direction) * newSpeed;
+            return direction * newSpeed;
         }
 
         /// <summary>

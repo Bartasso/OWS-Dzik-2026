@@ -99,17 +99,64 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
-        public void Slide_StartsOnlyAboveStartSpeed()
+        public void Slide_FromStandstill_CrouchesWithoutMoving()
         {
-            var slow = new LocomotionSimulator(TestAssets.Movement());
-            Step(slow, Forward, grounded: true, ticks: 20, runSpeed: 3f);
-            Step(slow, Forward, grounded: true, slide: true, runSpeed: 3f);
-            Assert.That(slow.Sliding, Is.False);
+            var sim = new LocomotionSimulator(TestAssets.Movement());
+            Step(sim, Vector3.zero, grounded: true);
 
-            var fast = new LocomotionSimulator(TestAssets.Movement());
-            Step(fast, Forward, grounded: true, ticks: 20);
-            Step(fast, Forward, grounded: true, slide: true);
-            Assert.That(fast.Sliding, Is.True);
+            Step(sim, Forward, grounded: true, ticks: 20, slide: true);
+
+            Assert.That(sim.Sliding, Is.True);
+            Assert.That(sim.HorizontalVelocity, Is.EqualTo(Vector3.zero), "steering input does not move a crouch");
+        }
+
+        [Test]
+        public void Slide_HeldUntilStopped_StaysCrouchedAtZero()
+        {
+            var sim = new LocomotionSimulator(TestAssets.Movement());
+            Step(sim, Forward, grounded: true, ticks: 20);
+
+            Step(sim, Forward, grounded: true, ticks: 150, slide: true);
+
+            Assert.That(sim.Sliding, Is.True);
+            Assert.That(sim.HorizontalVelocity, Is.EqualTo(Vector3.zero));
+        }
+
+        [Test]
+        public void Slide_SteeringInput_NeverAddsSpeed()
+        {
+            var sim = new LocomotionSimulator(TestAssets.Movement());
+            Step(sim, Forward, grounded: true, ticks: 20);
+
+            Step(sim, Forward, grounded: true, ticks: 10, slide: true);
+
+            Assert.That(sim.HorizontalVelocity.magnitude, Is.EqualTo(RunSpeed - 4f * Dt * 10).Within(1e-3f));
+        }
+
+        [Test]
+        public void Slide_FromStandstillOnSlope_StartsSlidingDownhill()
+        {
+            // 20° slope falling towards +Z.
+            Vector3 normal = Quaternion.Euler(20f, 0f, 0f) * Vector3.up;
+            var sim = new LocomotionSimulator(TestAssets.Movement());
+            Step(sim, Vector3.zero, grounded: true, normal: normal);
+
+            Step(sim, Vector3.zero, grounded: true, ticks: 25, slide: true, normal: normal);
+
+            Assert.That(sim.HorizontalVelocity.z, Is.GreaterThan(1f));
+            Assert.That(sim.HorizontalVelocity.x, Is.EqualTo(0f).Within(1e-4f));
+        }
+
+        [Test]
+        public void Slide_FromStandstillOnGentleSlope_FrictionHoldsIt()
+        {
+            // 5°: the downhill pull is weaker than slide friction.
+            Vector3 normal = Quaternion.Euler(5f, 0f, 0f) * Vector3.up;
+            var sim = new LocomotionSimulator(TestAssets.Movement());
+
+            Step(sim, Vector3.zero, grounded: true, ticks: 25, slide: true, normal: normal);
+
+            Assert.That(sim.HorizontalVelocity, Is.EqualTo(Vector3.zero));
         }
 
         [Test]

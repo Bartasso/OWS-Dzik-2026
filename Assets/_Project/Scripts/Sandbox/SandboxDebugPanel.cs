@@ -5,6 +5,7 @@ using Game.Data;
 using Game.Gameplay;
 using Game.Gameplay.Combat;
 using Game.Gameplay.Enemies;
+using Game.Gameplay.Movement;
 using Game.Gameplay.Player;
 using Game.Gameplay.SkillChecks;
 using UnityEngine;
@@ -24,6 +25,7 @@ namespace Game.Sandbox
         [SerializeField] private GameBootstrap _bootstrap;
         [SerializeField] private SandboxSettings _settings;
         [SerializeField] private PlayerHealth _playerHealth;
+        [SerializeField] private PlayerMotor _playerMotor;
         [SerializeField] private PlayerShooter _playerShooter;
         [SerializeField] private Interactor _interactor;
         [SerializeField] private EnemySpawner _enemySpawner;
@@ -41,10 +43,11 @@ namespace Game.Sandbox
         private Vector2 _scroll;
         private GUIStyle _bannerStyle;
         private GUIStyle _centerStyle;
+        private GUIStyle _speedStyle;
 
         private void Awake()
         {
-            if (_bootstrap == null || _settings == null || _playerHealth == null || _playerShooter == null
+            if (_bootstrap == null || _settings == null || _playerHealth == null || _playerMotor == null || _playerShooter == null
                 || _interactor == null || _enemySpawner == null || _projectiles == null)
             {
                 throw new InvalidOperationException($"{name}: missing scene reference, rebuild the sandbox scene");
@@ -164,6 +167,17 @@ namespace Game.Sandbox
             {
                 GUI.Box(new Rect(w / 2f - 200f, h / 2f - 40f, 400f, 80f), "Albert is down.\nF5: new run", _bannerStyle);
             }
+
+            DrawSpeed(w, h);
+        }
+
+        private void DrawSpeed(float w, float h)
+        {
+            LocomotionSimulator locomotion = _playerMotor.Locomotion;
+            string state = locomotion.Dash.Active ? "  DASH" : locomotion.Sliding ? "  SLIDE" : "";
+            string text = $"{locomotion.HorizontalVelocity.magnitude:0.0} m/s   vertical {locomotion.VerticalVelocity:+0.0;-0.0;0.0}{state}"
+                + $"   dash charges {locomotion.Dash.Charges}";
+            GUI.Label(new Rect(0f, h - 60f, w, 40f), text, _speedStyle);
         }
 
         private void DrawPanel()
@@ -251,6 +265,7 @@ namespace Game.Sandbox
 
             _bannerStyle = new GUIStyle(GUI.skin.box) { fontSize = 18, alignment = TextAnchor.MiddleCenter, wordWrap = true };
             _centerStyle = new GUIStyle(GUI.skin.label) { fontSize = 20, alignment = TextAnchor.MiddleCenter };
+            _speedStyle = new GUIStyle(GUI.skin.label) { fontSize = 26, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
         }
 
         private static void SetCursorLocked(bool locked)
