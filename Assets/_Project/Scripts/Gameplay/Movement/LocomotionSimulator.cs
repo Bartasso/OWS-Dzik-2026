@@ -6,8 +6,8 @@ namespace Game.Gameplay.Movement
 {
     /// <summary>
     /// Velocity of a character from commands, run once per fixed tick: momentum-based running, gravity,
-    /// jumps with coyote time and input buffer, limited air control. Knows nothing about collisions:
-    /// the caller moves the body and reports back what the world blocked.
+    /// jumps with coyote time and input buffer, limited air control, dash, slide and slide-jump.
+    /// Knows nothing about collisions: the caller moves the body and reports back what the world blocked.
     /// </summary>
     public sealed class LocomotionSimulator
     {
@@ -16,6 +16,8 @@ namespace Game.Gameplay.Movement
         private const float BlockedRiseFraction = 0.5f;
 
         private readonly MovementTuning _tuning;
+        private readonly DashState _dash;
+        private readonly SlideState _slide;
 
         private Vector3 _horizontal;
         private float _vertical;
@@ -27,6 +29,8 @@ namespace Game.Gameplay.Movement
         public LocomotionSimulator(MovementTuning tuning)
         {
             _tuning = tuning ?? throw new ArgumentNullException(nameof(tuning));
+            _dash = new DashState(tuning.Dash);
+            _slide = new SlideState(tuning.Slide);
         }
 
         public Vector3 HorizontalVelocity => _horizontal;
@@ -40,6 +44,10 @@ namespace Game.Gameplay.Movement
 
         public int AirJumpsUsed => _airJumpsUsed;
 
+        public DashState Dash => _dash;
+
+        public bool Sliding => _slide.Active;
+
         public void Tick(in LocomotionInput input, float deltaTime)
         {
             if (!(deltaTime > 0f))
@@ -50,36 +58,32 @@ namespace Game.Gameplay.Movement
             // Rising from a jump while the ground probe still touches the floor is not standing on it.
             bool grounded = input.Grounded && _vertical <= 0f;
             UpdateGroundTimers(grounded, deltaTime);
-            UpdateJump(input, deltaTime);
+            _dash.Recharge(input.ExtraDashCharges, deltaTime);
 
-            if (JumpedThisTick)
-            {
-                _vertical = _tuning.JumpSpeed;
-            }
-            else if (grounded)
-            {
-                _vertical = 0f;
-            }
-            else
-            {
-                _vertical = Mathf.Max(_vertical - _tuning.Gravity * deltaTime, -_tuning.MaxFallSpeed);
-            }
-
-            Vector3 wish = input.WishDirection;
-            wish.y = 0f;
+            Vector3 wish = Flat(input.WishDirection);
             wish = Vector3.ClampMagnitude(wish, 1f);
 
-            if (grounded)
+            UpdateJump(input, deltaTime);
+            if (JumpedThisTick)
             {
-                float rate = wish.sqrMagnitude > 0f ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
-                _horizontal = Vector3.MoveTowards(_horizontal, wish * input.RunSpeed, rate * deltaTime);
+                StartJump();
             }
-            else if (wish.sqrMagnitude > 0f)
+            else if (input.DashPressed && input.CanStand)
             {
-                // Steering only: momentum above run speed is kept, but steering cannot add more.
-                float cap = Mathf.Max(_horizontal.magnitude, input.RunSpeed);
-                _horizontal = Vector3.ClampMagnitude(_horizontal + wish * (_tuning.AirAcceleration * deltaTime), cap);
+                Vector3 direction = wish.sqrMagnitude > 0f ? wish.normalized : Flat(input.Facing).normalized;
+                if (_dash.TryStart(direction, grounded, _horizontal.magnitude, input.RunSpeed))
+                {
+                    _slide.End();
+                }
             }
+
+            if (!_dash.Active)
+            {
+                _slide.Update(input.SlideHeld, grounded && !JumpedThisTick, input.CanStand, _horizontal.magnitude, deltaTime);
+            }
+
+            UpdateVertical(grounded, deltaTime);
+            UpdateHorizontal(input, wish, grounded, deltaTime);
         }
 
         /// <summary>
@@ -95,7 +99,7 @@ namespace Game.Gameplay.Movement
                 return;
             }
 
-            Vector3 flat = new Vector3(resolvedMove.x, 0f, resolvedMove.z);
+            Vector3 flat = Flat(resolvedMove);
             _horizontal = flat.sqrMagnitude > 0f ? flat.normalized * (resolved / deltaTime) : Vector3.zero;
         }
 
@@ -118,6 +122,13 @@ namespace Game.Gameplay.Movement
             _groundJumpUsed = false;
             _airJumpsUsed = 0;
             JumpedThisTick = false;
+            _dash.Reset();
+            _slide.End();
+        }
+
+        private static Vector3 Flat(Vector3 vector)
+        {
+            return new Vector3(vector.x, 0f, vector.z);
         }
 
         private void UpdateGroundTimers(bool grounded, float deltaTime)
@@ -127,6 +138,7 @@ namespace Game.Gameplay.Movement
                 _timeSinceGrounded = 0f;
                 _groundJumpUsed = false;
                 _airJumpsUsed = 0;
+                _dash.RestoreAirDash();
             }
             else
             {
@@ -142,20 +154,96 @@ namespace Game.Gameplay.Movement
                 _jumpBufferLeft = _tuning.JumpBufferTime;
             }
 
-            bool canGroundJump = !_groundJumpUsed && _timeSinceGrounded <= _tuning.CoyoteTime;
-            if (_jumpBufferLeft > 0f && canGroundJump)
+            // Under a low ceiling the jump waits in the buffer until there is room to stand.
+            if (input.CanStand)
             {
-                _groundJumpUsed = true;
-                JumpedThisTick = true;
-            }
-            else if (input.JumpPressed && _airJumpsUsed < input.ExtraJumps)
-            {
-                // Air jumps need a fresh press: a buffered press before landing belongs to the ground jump.
-                _airJumpsUsed++;
-                JumpedThisTick = true;
+                bool canGroundJump = !_groundJumpUsed && _timeSinceGrounded <= _tuning.CoyoteTime;
+                if (_jumpBufferLeft > 0f && canGroundJump)
+                {
+                    _groundJumpUsed = true;
+                    JumpedThisTick = true;
+                }
+                else if (input.JumpPressed && _airJumpsUsed < input.ExtraJumps)
+                {
+                    // Air jumps need a fresh press: a buffered press before landing belongs to the ground jump.
+                    _airJumpsUsed++;
+                    JumpedThisTick = true;
+                }
             }
 
             _jumpBufferLeft = JumpedThisTick ? 0f : Mathf.Max(0f, _jumpBufferLeft - deltaTime);
+        }
+
+        private void StartJump()
+        {
+            _dash.RestoreAirDash();
+            if (_dash.Active)
+            {
+                _dash.Cancel();
+                _horizontal = _dash.ExitVelocity;
+            }
+
+            float boost = _slide.JumpBoost(_horizontal.magnitude);
+            if (boost > 0f && _horizontal.sqrMagnitude > 0f)
+            {
+                _horizontal += _horizontal.normalized * boost;
+            }
+
+            _slide.End();
+        }
+
+        private void UpdateVertical(bool grounded, float deltaTime)
+        {
+            if (JumpedThisTick)
+            {
+                _vertical = _tuning.JumpSpeed;
+            }
+            else if (_dash.Active || grounded)
+            {
+                _vertical = 0f;
+            }
+            else
+            {
+                _vertical = Mathf.Max(_vertical - _tuning.Gravity * deltaTime, -_tuning.MaxFallSpeed);
+            }
+        }
+
+        private void UpdateHorizontal(in LocomotionInput input, Vector3 wish, bool grounded, float deltaTime)
+        {
+            if (_dash.Active)
+            {
+                bool ended = _dash.Advance(deltaTime);
+                _horizontal = ended ? _dash.ExitVelocity : _dash.Velocity;
+            }
+            else if (_slide.Active)
+            {
+                _horizontal = _slide.Slide(_horizontal, wish, input.GroundNormal, _tuning.Gravity, _tuning.OverspeedDeceleration, deltaTime);
+            }
+            else if (grounded)
+            {
+                float rate;
+                if (wish.sqrMagnitude <= 0f)
+                {
+                    rate = _tuning.GroundDeceleration;
+                }
+                else if (_horizontal.magnitude > input.RunSpeed)
+                {
+                    // Momentum from dashes and slide-jumps bleeds off slowly instead of snapping to run speed.
+                    rate = _tuning.OverspeedDeceleration;
+                }
+                else
+                {
+                    rate = _tuning.GroundAcceleration;
+                }
+
+                _horizontal = Vector3.MoveTowards(_horizontal, wish * input.RunSpeed, rate * deltaTime);
+            }
+            else if (wish.sqrMagnitude > 0f)
+            {
+                // Steering only: momentum above run speed is kept, but steering cannot add more.
+                float cap = Mathf.Max(_horizontal.magnitude, input.RunSpeed);
+                _horizontal = Vector3.ClampMagnitude(_horizontal + wish * (_tuning.AirAcceleration * deltaTime), cap);
+            }
         }
     }
 }

@@ -23,5 +23,6 @@ namespace Game.Core
         SkillCheckAdvantage = 17,
         SkillCheckDisadvantage = 18,
         ExtraJumps = 19,
+        ExtraDashCharges = 20,
     }
 }

@@ -17,6 +17,9 @@ namespace Game.Data
         [Tooltip("m/s² towards standstill while grounded without input.")]
         [SerializeField] private float _groundDeceleration;
 
+        [Tooltip("m/s² at which grounded speed above run speed bleeds off while steering.")]
+        [SerializeField] private float _overspeedDeceleration;
+
         [Tooltip("m/s² of steering in the air. There is no air braking without input.")]
         [SerializeField] private float _airAcceleration;
 
@@ -44,9 +47,15 @@ namespace Game.Data
         [Tooltip("Collision skin of the character capsule, in meters.")]
         [SerializeField] private float _skinWidth;
 
+        [SerializeField] private DashTuning _dash = new DashTuning();
+
+        [SerializeField] private SlideTuning _slide = new SlideTuning();
+
         public MovementTuning()
         {
         }
+
+        /// <summary>Running and jumping only; dash and slide stay unset (invalid until filled).</summary>
 
         public MovementTuning(
             float groundAcceleration,
@@ -60,9 +69,30 @@ namespace Game.Data
             float maxWalkAngle,
             float stepHeight,
             float skinWidth)
+            : this(groundAcceleration, groundDeceleration, 0f, airAcceleration, gravity, maxFallSpeed, jumpHeight,
+                coyoteTime, jumpBufferTime, maxWalkAngle, stepHeight, skinWidth, new DashTuning(), new SlideTuning())
+        {
+        }
+
+        public MovementTuning(
+            float groundAcceleration,
+            float groundDeceleration,
+            float overspeedDeceleration,
+            float airAcceleration,
+            float gravity,
+            float maxFallSpeed,
+            float jumpHeight,
+            float coyoteTime,
+            float jumpBufferTime,
+            float maxWalkAngle,
+            float stepHeight,
+            float skinWidth,
+            DashTuning dash,
+            SlideTuning slide)
         {
             _groundAcceleration = groundAcceleration;
             _groundDeceleration = groundDeceleration;
+            _overspeedDeceleration = overspeedDeceleration;
             _airAcceleration = airAcceleration;
             _gravity = gravity;
             _maxFallSpeed = maxFallSpeed;
@@ -72,11 +102,15 @@ namespace Game.Data
             _maxWalkAngle = maxWalkAngle;
             _stepHeight = stepHeight;
             _skinWidth = skinWidth;
+            _dash = dash ?? throw new ArgumentNullException(nameof(dash));
+            _slide = slide ?? throw new ArgumentNullException(nameof(slide));
         }
 
         public float GroundAcceleration => _groundAcceleration;
 
         public float GroundDeceleration => _groundDeceleration;
+
+        public float OverspeedDeceleration => _overspeedDeceleration;
 
         public float AirAcceleration => _airAcceleration;
 
@@ -96,6 +130,10 @@ namespace Game.Data
 
         public float SkinWidth => _skinWidth;
 
+        public DashTuning Dash => _dash;
+
+        public SlideTuning Slide => _slide;
+
         /// <summary>Launch speed that reaches <see cref="JumpHeight"/> under <see cref="Gravity"/>.</summary>
         public float JumpSpeed => Mathf.Sqrt(2f * _gravity * _jumpHeight);
 
@@ -103,6 +141,7 @@ namespace Game.Data
         {
             DataChecks.Positive(report, owner, nameof(_groundAcceleration), _groundAcceleration);
             DataChecks.Positive(report, owner, nameof(_groundDeceleration), _groundDeceleration);
+            DataChecks.Positive(report, owner, nameof(_overspeedDeceleration), _overspeedDeceleration);
             DataChecks.NotNegative(report, owner, nameof(_airAcceleration), _airAcceleration);
             DataChecks.Positive(report, owner, nameof(_gravity), _gravity);
             DataChecks.Positive(report, owner, nameof(_maxFallSpeed), _maxFallSpeed);
@@ -116,6 +155,15 @@ namespace Game.Data
             {
                 report.AddError(owner.name, $"{nameof(_maxWalkAngle)} must be in (0, 90), is {_maxWalkAngle}", owner);
             }
+
+            if (_dash == null || _slide == null)
+            {
+                report.AddError(owner.name, "missing dash or slide tuning", owner);
+                return;
+            }
+
+            _dash.Validate(report, owner);
+            _slide.Validate(report, owner);
         }
     }
 }

@@ -8,6 +8,7 @@ namespace Game.Gameplay.Player
     {
         [SerializeField] private CapsuleCollider _capsule;
 
+        private readonly InvulnerabilityTimer _iFrames = new InvulnerabilityTimer();
         private RunContext _context;
 
         public float Current { get; private set; }
@@ -18,6 +19,9 @@ namespace Game.Gameplay.Player
 
         /// <summary>Debug god mode.</summary>
         public bool Invulnerable { get; set; }
+
+        /// <summary>Temporarily immune to damage, e.g. dash i-frames.</summary>
+        public bool HasIFrames => _iFrames.Active;
 
         public float Radius => _capsule.radius;
 
@@ -30,7 +34,7 @@ namespace Game.Gameplay.Player
 
         public void TakeDamage(float amount)
         {
-            if (IsDead || Invulnerable || amount <= 0f)
+            if (IsDead || Invulnerable || _iFrames.Active || amount <= 0f)
             {
                 return;
             }
@@ -43,6 +47,11 @@ namespace Game.Gameplay.Player
                 IsDead = true;
                 _context.Pause.Push();
             }
+        }
+
+        public void GrantIFrames(float seconds)
+        {
+            _iFrames.Grant(seconds);
         }
 
         private void Awake()
@@ -62,6 +71,16 @@ namespace Game.Gameplay.Player
 
             // Max HP can drop (trade-off trinkets), so clamp every frame.
             Current = Mathf.Min(Current + _context.Stats.Get(StatId.HpRegen) * Time.deltaTime, Max);
+        }
+
+        private void FixedUpdate()
+        {
+            if (_context.Pause.IsPaused)
+            {
+                return;
+            }
+
+            _iFrames.Tick(Time.deltaTime);
         }
     }
 }

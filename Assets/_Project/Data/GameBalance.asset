@@ -26,6 +26,7 @@ MonoBehaviour:
   _movement:
     _groundAcceleration: 60
     _groundDeceleration: 50
+    _overspeedDeceleration: 8
     _airAcceleration: 15
     _gravity: 30
     _maxFallSpeed: 40
@@ -35,6 +36,22 @@ MonoBehaviour:
     _maxWalkAngle: 50
     _stepHeight: 0.35
     _skinWidth: 0.01
+    _dash:
+      _speed: 22
+      _duration: 0.15
+      _cooldown: 2
+      _invulnerability: 0.2
+      _baseCharges: 1
+    _slide:
+      _startSpeed: 4
+      _stopSpeed: 2.5
+      _friction: 4
+      _slopeFactor: 1
+      _steering: 4
+      _height: 1
+      _jumpBoost: 1.5
+      _jumpBoostWindow: 0.2
+      _softSpeedCap: 14
   _statLimits:
   - _stat: 7
     _min: 1

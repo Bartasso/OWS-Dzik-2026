@@ -2,7 +2,7 @@ namespace Game.Core
 {
     public static class StatIds
     {
-        public const int Count = 20;
+        public const int Count = 21;
 
         public static bool IsAbility(StatId stat)
         {
@@ -10,7 +10,7 @@ namespace Game.Core
         }
 
         /// <summary>
-        /// Integer stats accept only whole Flat modifiers: abilities, the skill check stats and jump count.
+        /// Integer stats accept only whole Flat modifiers: abilities, the skill check stats, jump and dash counts.
         /// </summary>
         public static bool IsInteger(StatId stat)
         {
@@ -18,7 +18,8 @@ namespace Game.Core
                 || stat == StatId.SkillCheckBonus
                 || stat == StatId.SkillCheckAdvantage
                 || stat == StatId.SkillCheckDisadvantage
-                || stat == StatId.ExtraJumps;
+                || stat == StatId.ExtraJumps
+                || stat == StatId.ExtraDashCharges;
         }
 
         public static StatId FromAbility(Ability ability)

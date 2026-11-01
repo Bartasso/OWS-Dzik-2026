@@ -7,8 +7,8 @@ using Game.Gameplay.Input;
 using Game.Gameplay.Player;
 using Game.Gameplay.SkillChecks;
 using Game.Presentation;
-using nickmaltbie.OpenKCC.Character;
 using Game.Sandbox;
+using nickmaltbie.OpenKCC.Character;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -28,6 +28,7 @@ namespace Game.Editor
     public static class SandboxSceneBuilder
     {
         private const string ScenePath = "Assets/_Project/Scenes/Sandbox.unity";
+        private const string MovementScenePath = "Assets/_Project/Scenes/MovementTest.unity";
         private const string PrefabFolder = "Assets/_Project/Prefabs/Test";
         private const string ArtFolder = "Assets/_Project/Art/Test";
         private const string InputPath = "Assets/_Project/Input/GameInput.inputactions";
@@ -43,6 +44,18 @@ namespace Game.Editor
 
         [MenuItem("Tools/Sandbox/Build Sandbox Scene")]
         public static void Build()
+        {
+            Build(ScenePath, BuildObstacles);
+        }
+
+        /// <summary>The sandbox with a movement course (ramps, stairs, low beam) instead of the obstacles.</summary>
+        [MenuItem("Tools/Sandbox/Build Movement Test Scene")]
+        public static void BuildMovementTest()
+        {
+            Build(MovementScenePath, (camera, font) => MovementCourseBuilder.Build(GetMaterial, camera, font));
+        }
+
+        private static void Build(string scenePath, Action<Camera, Font> buildLevel)
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             {
@@ -68,13 +81,29 @@ namespace Game.Editor
             Enemy enemyPrefab = BuildPrimitivePrefab("Enemy", PrimitiveType.Capsule, GetMaterial("Enemy", new Color(0.8f, 0.15f, 0.15f))).AddComponentToPrefab<Enemy>();
             TextMesh numberPrefab = BuildNumberPrefab(PrefabFolder, font);
 
-            BuildScene(scene, data, input, font, fireballPrefab, enemyPrefab, numberPrefab);
+            BuildScene(scene, scenePath, buildLevel, data, input, font, fireballPrefab, enemyPrefab, numberPrefab);
             AssetDatabase.SaveAssets();
-            Debug.Log($"Sandbox scene built: {ScenePath}. Press Play.");
+            Debug.Log($"Sandbox scene built: {scenePath}. Press Play.");
+        }
+
+        private static void BuildObstacles(Camera camera, Font font)
+        {
+            Material obstacle = GetMaterial("Obstacle", new Color(0.5f, 0.5f, 0.55f));
+            Primitive("Obstacle", PrimitiveType.Cube, null, new Vector3(-6f, 1f, -8f), new Vector3(3f, 2f, 3f), obstacle);
+            Primitive("Obstacle", PrimitiveType.Cube, null, new Vector3(15f, 1.5f, -5f), new Vector3(2f, 3f, 6f), obstacle);
+            Primitive("Obstacle", PrimitiveType.Cube, null, new Vector3(-18f, 0.75f, -15f), new Vector3(5f, 1.5f, 2f), obstacle);
         }
 
         private static void BuildScene(
-            Scene scene, SandboxData data, InputActionAsset input, Font font, Transform fireballPrefab, Enemy enemyPrefab, TextMesh numberPrefab)
+            Scene scene,
+            string scenePath,
+            Action<Camera, Font> buildLevel,
+            SandboxData data,
+            InputActionAsset input,
+            Font font,
+            Transform fireballPrefab,
+            Enemy enemyPrefab,
+            TextMesh numberPrefab)
         {
             var light = new GameObject("Directional Light").AddComponent<Light>();
             light.type = LightType.Directional;
@@ -85,25 +114,23 @@ namespace Game.Editor
             RenderSettings.ambientLight = new Color(0.45f, 0.45f, 0.5f);
 
             GameObject ground = Primitive("Ground", PrimitiveType.Plane, null, Vector3.zero, new Vector3(10f, 1f, 10f), GetMaterial("Ground", new Color(0.35f, 0.4f, 0.35f)));
-            Material obstacle = GetMaterial("Obstacle", new Color(0.5f, 0.5f, 0.55f));
-            Primitive("Obstacle", PrimitiveType.Cube, null, new Vector3(-6f, 1f, -8f), new Vector3(3f, 2f, 3f), obstacle);
-            Primitive("Obstacle", PrimitiveType.Cube, null, new Vector3(15f, 1.5f, -5f), new Vector3(2f, 3f, 6f), obstacle);
-            Primitive("Obstacle", PrimitiveType.Cube, null, new Vector3(-18f, 0.75f, -15f), new Vector3(5f, 1.5f, 2f), obstacle);
             ground.isStatic = true;
 
             var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
             Camera camera = cameraObject.AddComponent<Camera>();
             camera.nearClipPlane = 0.1f;
             cameraObject.AddComponent<AudioListener>();
+            buildLevel(camera, font);
 
             // Player
             var player = new GameObject("Player (Albert)");
             (CapsuleCollider capsule, KCCMovementEngine engine) = KinematicBody(player, 0.4f, 2f);
             Transform visual = InterpolatedVisual(player.transform);
-            Primitive("Body", PrimitiveType.Capsule, visual, new Vector3(0f, 1f, 0f), new Vector3(0.8f, 1f, 0.8f), GetMaterial("Player", new Color(0.2f, 0.35f, 0.85f)), keepCollider: false);
-            Primitive("Hat", PrimitiveType.Cylinder, visual, new Vector3(0f, 2.15f, 0f), new Vector3(0.7f, 0.12f, 0.7f), GetMaterial("Hat", new Color(0.35f, 0.15f, 0.55f)), keepCollider: false);
-            Primitive("Nose", PrimitiveType.Cube, visual, new Vector3(0f, 1.55f, 0.4f), Vector3.one * 0.15f, GetMaterial("Skin", new Color(0.95f, 0.75f, 0.6f)), keepCollider: false);
-            Primitive("Staff", PrimitiveType.Cube, visual, new Vector3(0.5f, 1.1f, 0.25f), new Vector3(0.08f, 1.8f, 0.08f), GetMaterial("Staff", new Color(0.4f, 0.25f, 0.1f)), keepCollider: false);
+            Transform pose = SlidingPose(visual);
+            Primitive("Body", PrimitiveType.Capsule, pose, new Vector3(0f, 1f, 0f), new Vector3(0.8f, 1f, 0.8f), GetMaterial("Player", new Color(0.2f, 0.35f, 0.85f)), keepCollider: false);
+            Primitive("Hat", PrimitiveType.Cylinder, pose, new Vector3(0f, 2.15f, 0f), new Vector3(0.7f, 0.12f, 0.7f), GetMaterial("Hat", new Color(0.35f, 0.15f, 0.55f)), keepCollider: false);
+            Primitive("Nose", PrimitiveType.Cube, pose, new Vector3(0f, 1.55f, 0.4f), Vector3.one * 0.15f, GetMaterial("Skin", new Color(0.95f, 0.75f, 0.6f)), keepCollider: false);
+            Primitive("Staff", PrimitiveType.Cube, pose, new Vector3(0.5f, 1.1f, 0.25f), new Vector3(0.08f, 1.8f, 0.08f), GetMaterial("Staff", new Color(0.4f, 0.25f, 0.1f)), keepCollider: false);
             var muzzle = new GameObject("Muzzle").transform;
             muzzle.SetParent(player.transform, false);
             muzzle.localPosition = new Vector3(0.5f, 1.6f, 0.6f);
@@ -111,6 +138,7 @@ namespace Game.Editor
             var aim = player.AddComponent<PlayerAim>();
             var motor = Disabled(player.AddComponent<PlayerMotor>());
             Edit(motor, s => SetObject(s, "_engine", engine));
+            AddSlidePose(pose, motor);
             var shooter = Disabled(player.AddComponent<PlayerShooter>());
             Edit(shooter, s => SetObject(s, "_muzzle", muzzle));
             var health = Disabled(player.AddComponent<PlayerHealth>());
@@ -183,8 +211,8 @@ namespace Game.Editor
                 SetObject(s, "_projectiles", projectiles);
             });
 
-            EditorSceneManager.SaveScene(scene, ScenePath);
-            AddToBuildSettings(ScenePath);
+            EditorSceneManager.SaveScene(scene, scenePath);
+            AddToBuildSettings(scenePath);
         }
 
         private static SkillCheckSite BuildSite(Game.Data.SkillCheckSiteDef definition, Vector3 position, Vector3 scale, Color color, Camera camera, Font font)

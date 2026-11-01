@@ -124,28 +124,60 @@ namespace Game.Editor
             };
         }
 
-        /// <summary>Fills the movement block only while it is unset, so Inspector tuning survives rebuilds.</summary>
+        /// <summary>Fills each movement block only while it is unset, so Inspector tuning survives rebuilds.</summary>
         private static void EnsureMovementTuning(GameBalance balance)
         {
-            if (balance.Movement != null && balance.Movement.Gravity > 0f)
+            MovementTuning movement = balance.Movement;
+            if (movement == null || movement.Gravity <= 0f)
             {
-                return;
+                Edit(balance, s =>
+                {
+                    SetFloat(s, "_movement._groundAcceleration", 60f);
+                    SetFloat(s, "_movement._groundDeceleration", 50f);
+                    SetFloat(s, "_movement._airAcceleration", 15f);
+                    SetFloat(s, "_movement._gravity", 30f);
+                    SetFloat(s, "_movement._maxFallSpeed", 40f);
+                    SetFloat(s, "_movement._jumpHeight", 1.6f);
+                    SetFloat(s, "_movement._coyoteTime", 0.12f);
+                    SetFloat(s, "_movement._jumpBufferTime", 0.15f);
+                    SetFloat(s, "_movement._maxWalkAngle", 50f);
+                    SetFloat(s, "_movement._stepHeight", 0.35f);
+                    SetFloat(s, "_movement._skinWidth", 0.01f);
+                });
             }
 
-            Edit(balance, s =>
+            if (balance.Movement.OverspeedDeceleration <= 0f)
             {
-                SetFloat(s, "_movement._groundAcceleration", 60f);
-                SetFloat(s, "_movement._groundDeceleration", 50f);
-                SetFloat(s, "_movement._airAcceleration", 15f);
-                SetFloat(s, "_movement._gravity", 30f);
-                SetFloat(s, "_movement._maxFallSpeed", 40f);
-                SetFloat(s, "_movement._jumpHeight", 1.6f);
-                SetFloat(s, "_movement._coyoteTime", 0.12f);
-                SetFloat(s, "_movement._jumpBufferTime", 0.15f);
-                SetFloat(s, "_movement._maxWalkAngle", 50f);
-                SetFloat(s, "_movement._stepHeight", 0.35f);
-                SetFloat(s, "_movement._skinWidth", 0.01f);
-            });
+                Edit(balance, s => SetFloat(s, "_movement._overspeedDeceleration", 8f));
+            }
+
+            if (balance.Movement.Dash == null || balance.Movement.Dash.Speed <= 0f)
+            {
+                Edit(balance, s =>
+                {
+                    SetFloat(s, "_movement._dash._speed", 22f);
+                    SetFloat(s, "_movement._dash._duration", 0.15f);
+                    SetFloat(s, "_movement._dash._cooldown", 2f);
+                    SetFloat(s, "_movement._dash._invulnerability", 0.2f);
+                    SetInt(s, "_movement._dash._baseCharges", 1);
+                });
+            }
+
+            if (balance.Movement.Slide == null || balance.Movement.Slide.StartSpeed <= 0f)
+            {
+                Edit(balance, s =>
+                {
+                    SetFloat(s, "_movement._slide._startSpeed", 4f);
+                    SetFloat(s, "_movement._slide._stopSpeed", 2.5f);
+                    SetFloat(s, "_movement._slide._friction", 4f);
+                    SetFloat(s, "_movement._slide._slopeFactor", 1f);
+                    SetFloat(s, "_movement._slide._steering", 4f);
+                    SetFloat(s, "_movement._slide._height", 1f);
+                    SetFloat(s, "_movement._slide._jumpBoost", 1.5f);
+                    SetFloat(s, "_movement._slide._jumpBoostWindow", 0.2f);
+                    SetFloat(s, "_movement._slide._softSpeedCap", 14f);
+                });
+            }
         }
 
         private static SkillDef Skill(string file, string id, string displayName, Ability ability)

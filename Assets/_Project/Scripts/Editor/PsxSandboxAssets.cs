@@ -24,7 +24,7 @@ namespace Game.Editor
         private const string MannequinAtlasPath = HeyHeyThere + "/PSXAnimationLibraryFree/Textures/atlas.png";
         private const string EnemyModelPath = HeyHeyThere + "/PSXRetroFPSMonsters/Prefabs/PF_trooper.prefab";
         private const string FireballPath = HeyHeyThere + "/PSXFX/Prefabs/64/PF_fireball.prefab";
-        private static readonly string[] LoopingClips = { "idle", "walk", "run" };
+        private static readonly string[] LoopingClips = { "idle", "walk", "run", "crouch_idle" };
 
         public static T Load<T>(string path)
             where T : Object
@@ -173,13 +173,27 @@ namespace Game.Editor
             AssetDatabase.DeleteAsset(path);
             AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(path);
             controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
-            controller.CreateBlendTreeInController("Locomotion", out BlendTree tree);
+            controller.AddParameter("Sliding", AnimatorControllerParameterType.Bool);
+            AnimatorState locomotion = controller.CreateBlendTreeInController("Locomotion", out BlendTree tree);
             tree.blendParameter = "Speed";
             tree.useAutomaticThresholds = false;
             tree.AddChild(Clip("idle"), 0f);
             tree.AddChild(Clip("walk"), 1.5f);
             tree.AddChild(Clip("run"), 5f);
+
+            // No slide clip in the pack yet: crouch, with SlidePose leaning the model back.
+            AnimatorState slide = controller.layers[0].stateMachine.AddState("Slide");
+            slide.motion = Clip("crouch_idle");
+            Transition(locomotion.AddTransition(slide), "Sliding", AnimatorConditionMode.If);
+            Transition(slide.AddTransition(locomotion), "Sliding", AnimatorConditionMode.IfNot);
             return controller;
+        }
+
+        private static void Transition(AnimatorStateTransition transition, string parameter, AnimatorConditionMode mode)
+        {
+            transition.AddCondition(mode, 0f, parameter);
+            transition.hasExitTime = false;
+            transition.duration = 0.1f;
         }
 
         private static AnimationClip Clip(string name)

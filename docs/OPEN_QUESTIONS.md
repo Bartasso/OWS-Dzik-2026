@@ -38,6 +38,8 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 - [ ] **Lokalizacja tekstów**: polski na sztywno czy Unity Localization (nowy pakiet)?
 - [ ] **Szybkość biegu z DEX**: GDD mówi „szybkość rośnie z DEX”, formuły brak. Na razie bieg = sama statystyka `MoveSpeed`. Propozycja: `MoveSpeed × (1 + DEX × X%)` w `StatFormulas`, X w `GameBalance`.
 - [ ] **Kontrola w powietrzu**: teraz wciśnięcie kierunku przeciwnego w powietrzu hamuje z `_airAcceleration` (ok. 0,4 s do zera). Czy to już „hamowanie w miejscu”, którego GDD zabrania? Do oceny w playteście.
+- [ ] **Szybsze odnowienie dasha**: teraz ogólne `CooldownReduction` nie działa na dash. Trinkety „szybsze odnowienie dasha” potrzebują osobnej statystyki (np. `DashCooldownReduction`).
+- [ ] **Animacja ślizgu**: tymczasowo `crouch_idle` + model odchylony o 30° (`SlidePose`). Docelowo własny klip.
 - [ ] **Gapior „odwraca sterowanie”**: propozycja: modyfikator na warstwie komend, nie na Input.
 
 ---
@@ -63,5 +65,6 @@ Pytania designowe (biom MVP, listy contentu, boss, portal, fabuła) są w GDD, s
 - 2026-10-31: **Sterowanie**: LPM atak, PPM skill broni aktywnej, F używka, E interakcja, Shift dash, Spacja skok, Ctrl ślizg. Bronie pasywne nie mają skilli (GDD sekcja 3).
 - 2026-10-31: **Gimmick pod F zastąpiony** pasywką klasową (`ClassPassive`) i używką (`Vice`) z paskiem promili (GDD sekcja 7, CLAUDE.md 5b).
 - 2026-10-31: **Tick ruchu**: ruch liczony w `FixedUpdate` z komend, kontroler kinematyczny (CLAUDE.md 5a). Wybór konkretnego kontrolera nadal otwarty.
+- 2026-11-01: **Ruch, etap 2**: dash (`DashTuning`, ładunki z `ExtraDashCharges`, kierunek wejścia lub patrzenia, poziomy, bez grawitacji, jeden w powietrzu na skok, i-frame'y przez `PlayerHealth.GrantIFrames`), ślizg i slide-jump (`SlideTuning`: tarcie, stok, sterowanie, niższa kapsuła, bonus skoku w oknie po wejściu w ślizg, miękki limit prędkości). Nadwyżka pędu na ziemi wygasa z `_overspeedDeceleration`. Pod niskim sufitem postać zostaje w ślizgu i pełznie. Scena testowa `MovementTest` (Tools/Sandbox/Build Movement Test Scene).
 - 2026-11-01: **Ruch, etap 1**: parametry wspólne w `GameBalance._movement` (`MovementTuning`), prędkość biegu ze statystyki `MoveSpeed`, dodatkowe skoki ze statystyki całkowitej `ExtraJumps` (trinkety przez modyfikatory). Logika w `Gameplay.Movement.LocomotionSimulator` (czysty C#), kolizje przez OpenKCC w `CharacterLocomotion`. Model postaci interpolowany między tickami (`Presentation.TransformInterpolator`). Etap 2: dash, ślizg, slide-jump; etap 3: wall run, wall jump, mantle.
 - 2026-11-01: **Kontroler postaci**: OpenKCC (Nicholas Maltbie, MIT) jako warstwa kolizji, rdzeń skopiowany do `Assets/Plugins/OpenKCC` i poprawiany u nas. Logika ruchu własna w `Gameplay`, liczona w stałym ticku z komend. KCC z Asset Store odrzucony (licencja Unity, nie do publicznego repo).

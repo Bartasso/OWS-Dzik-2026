@@ -24,6 +24,8 @@ namespace Game.Gameplay.Input
         private InputAction _fire;
         private InputAction _interact;
         private InputAction _jump;
+        private InputAction _dash;
+        private InputAction _slide;
         private PlayerAim _aim;
         private PlayerMotor _motor;
         private PlayerShooter _shooter;
@@ -47,6 +49,8 @@ namespace Game.Gameplay.Input
             _fire = map.FindAction("Fire", throwIfNotFound: true);
             _interact = map.FindAction("Interact", throwIfNotFound: true);
             _jump = map.FindAction("Jump", throwIfNotFound: true);
+            _dash = map.FindAction("Dash", throwIfNotFound: true);
+            _slide = map.FindAction("Slide", throwIfNotFound: true);
             map.Enable();
             enabled = true;
         }
@@ -69,6 +73,13 @@ namespace Game.Gameplay.Input
             {
                 _motor.Apply(new JumpCommand());
             }
+
+            if (_dash.WasPressedThisFrame())
+            {
+                _motor.Apply(new DashCommand());
+            }
+
+            _motor.Apply(new SlideCommand(_slide.IsPressed()));
 
             if (cursorLocked)
             {

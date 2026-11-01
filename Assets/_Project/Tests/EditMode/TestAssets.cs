@@ -50,6 +50,7 @@ namespace Game.Tests.EditMode
             return new MovementTuning(
                 groundAcceleration: groundAcceleration,
                 groundDeceleration: 50f,
+                overspeedDeceleration: 8f,
                 airAcceleration: airAcceleration,
                 gravity: 30f,
                 maxFallSpeed: 40f,
@@ -58,7 +59,18 @@ namespace Game.Tests.EditMode
                 jumpBufferTime: jumpBufferTime,
                 maxWalkAngle: 50f,
                 stepHeight: 0.35f,
-                skinWidth: 0.01f);
+                skinWidth: 0.01f,
+                dash: new DashTuning(speed: 22f, duration: 0.15f, cooldown: 2f, invulnerability: 0.2f, baseCharges: 1),
+                slide: new SlideTuning(
+                    startSpeed: 4f,
+                    stopSpeed: 2.5f,
+                    friction: 4f,
+                    slopeFactor: 1f,
+                    steering: 4f,
+                    height: 1f,
+                    jumpBoost: 1.5f,
+                    jumpBoostWindow: 0.2f,
+                    softSpeedCap: 14f));
         }
 
         public SkillDef Skill(string id, Ability ability)

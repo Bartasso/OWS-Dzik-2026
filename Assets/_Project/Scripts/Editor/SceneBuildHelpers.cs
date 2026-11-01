@@ -110,6 +110,19 @@ namespace Game.Editor
             return visual;
         }
 
+        /// <summary>Child of the visual that leans back while sliding; put the character's parts under it.</summary>
+        public static Transform SlidingPose(Transform visual)
+        {
+            var pose = new GameObject("Pose").transform;
+            pose.SetParent(visual, false);
+            return pose;
+        }
+
+        public static void AddSlidePose(Transform pose, Game.Gameplay.Player.PlayerMotor motor)
+        {
+            Edit(pose.gameObject.AddComponent<SlidePose>(), s => SetObject(s, "_motor", motor));
+        }
+
         public static T Disabled<T>(T behaviour)
             where T : Behaviour
         {

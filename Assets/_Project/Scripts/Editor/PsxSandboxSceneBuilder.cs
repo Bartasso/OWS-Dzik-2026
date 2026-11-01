@@ -7,8 +7,8 @@ using Game.Gameplay.Input;
 using Game.Gameplay.Player;
 using Game.Gameplay.SkillChecks;
 using Game.Presentation;
-using nickmaltbie.OpenKCC.Character;
 using Game.Sandbox;
+using nickmaltbie.OpenKCC.Character;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -255,8 +255,9 @@ namespace Game.Editor
             var player = new GameObject("Player (Albert)");
             (CapsuleCollider capsule, KCCMovementEngine engine) = KinematicBody(player, 0.4f, 2f);
             Transform visual = InterpolatedVisual(player.transform);
+            Transform pose = SlidingPose(visual);
 
-            GameObject model = Mannequin(visual);
+            GameObject model = Mannequin(pose);
             GameObject staff = Visual(LoadPrefab("PSXMeleeWeapons/Prefabs/PF_wizard_staff"), FindBone(model, "RightHand"), "Staff");
             staff.transform.localPosition = Vector3.zero;
 
@@ -270,6 +271,12 @@ namespace Game.Editor
             var aim = player.AddComponent<PlayerAim>();
             var motor = Disabled(player.AddComponent<PlayerMotor>());
             Edit(motor, s => SetObject(s, "_engine", engine));
+            AddSlidePose(pose, motor);
+            Edit(visual.gameObject.AddComponent<SlideAnimator>(), s =>
+            {
+                SetObject(s, "_motor", motor);
+                SetObject(s, "_animator", model.GetComponent<Animator>());
+            });
             var shooter = Disabled(player.AddComponent<PlayerShooter>());
             Edit(shooter, s => SetObject(s, "_muzzle", muzzle));
             var health = Disabled(player.AddComponent<PlayerHealth>());

@@ -74,7 +74,7 @@ namespace Game.Gameplay
 
             _playerAim.Init();
             _playerHealth.Init(Context);
-            _playerMotor.Init(Context, _playerAim);
+            _playerMotor.Init(Context, _playerAim, _playerHealth);
             _enemySpawner.Init(Context, enemies, enemyPool, _spawnSettings, _playerHealth);
             _projectileSystem.Init(Context, projectilePool, enemies, new HitResolver(Context, _enemySpawner));
             _playerShooter.Init(Context, _playerAim, _projectileSystem);
