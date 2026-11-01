@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Nicholas Maltbie
+// Copyright (C) 2023 Nicholas Maltbie
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -65,17 +65,17 @@ namespace nickmaltbie.OpenKCC.Character.Config
         /// <param name="position">Position of object before moving.</param>
         /// <param name="rotation">Rotation of object before moving.</param>
         /// <param name="groundedState">Current grounded state of the object.</param>
+        /// <param name="ground">Moving ground component of the floor, null if the floor has none.</param>
         /// <param name="delta">Delta that the object has moved.</param>
         /// <param name="deltaTime">Delta time for update.</param>
         /// <returns>The distance the player should be moved based
         /// on moving ground. Will only be more than Vector3.zero if the ground
         /// is moving and should not attach.</returns>
-        public virtual Vector3 UpdateMovingGround(Vector3 position, Quaternion rotation, IKCCGrounded groundedState, Vector3 delta, float deltaTime)
+        public virtual Vector3 UpdateMovingGround(Vector3 position, Quaternion rotation, in KCCGroundedState groundedState, IMovingGround ground, Vector3 delta, float deltaTime)
         {
             if (groundedState.StandingOnGround && groundedState.Floor != null)
             {
-                Transform parent = groundedState.Floor?.transform;
-                IMovingGround ground = parent.GetComponent<IMovingGround>();
+                Transform parent = groundedState.Floor.transform;
 
                 if (ground == null || ground.ShouldAttach())
                 {

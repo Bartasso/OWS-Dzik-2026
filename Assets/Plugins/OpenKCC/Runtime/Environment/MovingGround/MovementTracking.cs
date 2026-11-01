@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Nicholas Maltbie
+// Copyright (C) 2023 Nicholas Maltbie
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -16,7 +16,6 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using nickmaltbie.TestUtilsUnity;
 using UnityEngine;
 
 namespace nickmaltbie.OpenKCC.Environment.MovingGround
@@ -26,11 +25,6 @@ namespace nickmaltbie.OpenKCC.Environment.MovingGround
     /// </summary>
     public class MovementTracking : MonoBehaviour, IMovingGround
     {
-        /// <summary>
-        /// Unity service for getting fixed delta time.
-        /// </summary>
-        internal IUnityService unityService = UnityService.Instance;
-
         /// <summary>
         /// Should momentum be transferred to players when they
         /// leave this object.
@@ -89,7 +83,7 @@ namespace nickmaltbie.OpenKCC.Environment.MovingGround
         /// <inheritdoc/>
         public virtual Vector3 GetVelocityAtPoint(Vector3 point)
         {
-            return GetDisplacementAtPoint(point) / unityService.fixedDeltaTime;
+            return GetDisplacementAtPoint(point) / Time.fixedDeltaTime;
         }
 
         /// <inheritdoc/>

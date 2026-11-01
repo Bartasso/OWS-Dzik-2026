@@ -18,23 +18,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using nickmaltbie.OpenKCC.Character.Config;
 using nickmaltbie.OpenKCC.Environment.MovingGround;
 using nickmaltbie.OpenKCC.Utils;
-using nickmaltbie.TestUtilsUnity;
 using UnityEngine;
 
 namespace nickmaltbie.OpenKCC.Character
 {
     /// <summary>
-    /// Movement engine for the kcc state machine
-    /// to abstract calls to the KCC Utils
-    /// for a basic character controller.
+    /// Moves a kinematic capsule through the scene: pushes out of overlaps, slides along surfaces,
+    /// steps up and snaps down, and tracks the grounded state. Allocation-free per tick; the caller
+    /// owns the tick and passes its delta time explicitly.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(IColliderCast))]
-    public class KCCMovementEngine : MonoBehaviour, IKCCConfig, ISerializationCallbackReceiver
+    public class KCCMovementEngine : MonoBehaviour, IKCCConfig
     {
         /// <summary>
         /// Default value for distance from ground player is considered grounded.
@@ -67,26 +65,15 @@ namespace nickmaltbie.OpenKCC.Character
         public const float DefaultMaxPushSpeed = 100.0f;
 
         /// <summary>
-        /// Modifier of step height for snapping the player down.
-        /// </summary>
-        public const float SnapDownModifier = 2.0f;
-
-        /// <summary>
         /// Max launch speed of player form moving ground.
         /// </summary>
         public const float DefaultMaxLaunchVelocity = 2.0f;
 
         /// <summary>
-        /// Serialization version for the KCCMovementEngine.
+        /// Bounces one move can produce: up to MaxBounces + 1 bounces plus the closing Stop.
+        /// Two moves per tick fit without the bounce buffer growing.
         /// </summary>
-        public const string CurrentSerializationVersion = "v1.0.0";
-
-        /// <summary>
-        /// Current serialization version of this serialized KCCMovementEngine.
-        /// </summary>
-        [HideInInspector]
-        [SerializeField]
-        internal string serializationVersion;
+        private const int BounceBufferCapacity = (DefaultMaxBounces + 2) * 2;
 
         /// <summary>
         /// Height of a step that the player can climb up.
@@ -113,26 +100,20 @@ namespace nickmaltbie.OpenKCC.Character
         public LayerMask layerMask = RaycastHelperConstants.DefaultLayerMask;
 
         /// <summary>
-        /// Unity service for managing calls to static variables in
-        /// a testable manner.
-        /// </summary>
-        protected IUnityService unityService = UnityService.Instance;
-
-        /// <summary>
-        /// Collider cast for player shape.
-        /// </summary>
-        public IColliderCast _colliderCast;
-
-        /// <summary>
-        /// Previous position of the player for calculating moving ground position.
-        /// </summary>
-        protected Vector3 previousPosition = Vector3.zero;
-
-        /// <summary>
         /// Approximated world velocity of the player.
         /// </summary>
         [NonSerialized]
         public SmoothedVector worldVelocity = new SmoothedVector(10);
+
+        private readonly List<KCCBounce> _bounces = new List<KCCBounce>(BounceBufferCapacity);
+        private readonly List<IOnPlayerTeleport> _teleportListeners = new List<IOnPlayerTeleport>();
+        private IColliderCast _colliderCast;
+        private Vector3 _previousPosition;
+
+        // Components of the floor, looked up only when the floor changes.
+        private GameObject _floor;
+        private IMovingGround _floorMovingGround;
+        private Rigidbody _floorRigidbody;
 
         /// <inheritdoc/>
         public bool CanSnapUp => GroundedState.OnGround;
@@ -185,7 +166,22 @@ namespace nickmaltbie.OpenKCC.Character
         /// <summary>
         /// Collider cast for player movement.
         /// </summary>
-        public virtual IColliderCast ColliderCast => _colliderCast = _colliderCast ?? GetComponent<IColliderCast>();
+        public IColliderCast ColliderCast
+        {
+            get
+            {
+                if (_colliderCast == null)
+                {
+                    _colliderCast = GetComponent<IColliderCast>();
+                    if (_colliderCast == null)
+                    {
+                        throw new InvalidOperationException($"{name}: missing IColliderCast component");
+                    }
+                }
+
+                return _colliderCast;
+            }
+        }
 
         /// <summary>
         /// Distance to ground at which player is considered grounded.
@@ -213,11 +209,17 @@ namespace nickmaltbie.OpenKCC.Character
         public KCCGroundedState GroundedState { get; protected set; }
 
         /// <summary>
+        /// Bounces of the last <see cref="MovePlayer(float, Vector3)"/> call. Reused every tick:
+        /// read it before the next move and index it instead of using foreach.
+        /// </summary>
+        public IReadOnlyList<KCCBounce> LastBounces => _bounces;
+
+        /// <summary>
         /// Setup and configure the movement engine.
         /// </summary>
         public void Awake()
         {
-            previousPosition = transform.position;
+            ResetVelocityTracking();
         }
 
         /// <summary>
@@ -230,51 +232,31 @@ namespace nickmaltbie.OpenKCC.Character
         }
 
         /// <summary>
-        /// Get the bounces for a KCC Utils movement action with a set default behaviour.
-        /// </summary>
-        /// <param name="movement">Movement to move the player.</param>
-        /// <returns>Bounces that the player makes when hitting objects as part of it's movement.</returns>
-        public virtual IEnumerable<KCCBounce> GetMovement(Vector3 movement)
-        {
-            foreach (KCCBounce bounce in KCCUtils.GetBounces(transform.position, movement, transform.rotation, this))
-            {
-                if (bounce.action == KCCUtils.MovementAction.Stop)
-                {
-                    transform.position = bounce.finalPosition;
-                }
-
-                yield return bounce;
-            }
-        }
-
-        /// <summary>
         /// Gets the velocity of the ground the player is standing on where the player is currently
         /// </summary>
         /// <returns>The velocity of the ground at the point the player is standing on</returns>
         public virtual Vector3 GetGroundVelocity()
         {
             Vector3 groundVelocity = Vector3.zero;
-            IMovingGround movingGround = GroundedState.Floor?.GetComponent<IMovingGround>();
-            Rigidbody rb = GroundedState.Floor?.GetComponent<Rigidbody>();
-            if (movingGround != null)
+            if (_floorMovingGround != null)
             {
-                if (movingGround.AvoidTransferMomentum())
+                if (_floorMovingGround.AvoidTransferMomentum())
                 {
                     return Vector3.zero;
                 }
 
                 // Weight movement of ground by ground movement weight
-                groundVelocity = movingGround.GetVelocityAtPoint(GroundedState.GroundHitPosition);
+                groundVelocity = _floorMovingGround.GetVelocityAtPoint(GroundedState.GroundHitPosition);
                 float velocityWeight =
-                    movingGround.GetMovementWeight(GroundedState.GroundHitPosition, groundVelocity);
+                    _floorMovingGround.GetMovementWeight(GroundedState.GroundHitPosition, groundVelocity);
                 float transferWeight =
-                    movingGround.GetTransferMomentumWeight(GroundedState.GroundHitPosition, groundVelocity);
+                    _floorMovingGround.GetTransferMomentumWeight(GroundedState.GroundHitPosition, groundVelocity);
                 groundVelocity *= velocityWeight;
                 groundVelocity *= transferWeight;
             }
-            else if (rb != null && !rb.isKinematic)
+            else if (_floorRigidbody != null && !_floorRigidbody.isKinematic)
             {
-                Vector3 groundVel = rb.GetPointVelocity(GroundedState.GroundHitPosition);
+                Vector3 groundVel = _floorRigidbody.GetPointVelocity(GroundedState.GroundHitPosition);
                 float velocity = Mathf.Min(groundVel.magnitude, MaxDefaultLaunchVelocity);
                 groundVelocity = groundVel.normalized * velocity;
             }
@@ -297,48 +279,23 @@ namespace nickmaltbie.OpenKCC.Character
         }
 
         /// <summary>
-        /// Applies player movement based current configuration.
-        /// Includes pushing out overlapping objects, updating grounded state, jumping,
-        /// moving the player, and updating the grounded state.
+        /// Applies one movement for this tick: follows moving ground, pushes out of overlaps,
+        /// moves with bounces, snaps down and updates the grounded state.
         /// </summary>
-        /// <param name="moves">Desired player movement in world space.</param>
-        public virtual KCCBounce[] MovePlayer(params Vector3[] moves)
+        /// <param name="deltaTime">Duration of the tick in seconds.</param>
+        /// <param name="move">Desired displacement in world space for this tick.</param>
+        public void MovePlayer(float deltaTime, Vector3 move)
         {
-            RelativeParentConfig.FollowGround(transform);
-            Vector3 previousVelocity = (transform.position - previousPosition) / unityService.deltaTime;
-            worldVelocity.AddSample(previousVelocity);
+            MovePlayerInternal(deltaTime, move, Vector3.zero, 1);
+        }
 
-            Vector3 start = transform.position;
-
-            // Push player out of overlapping objects
-            transform.position += ColliderCast.PushOutOverlapping(
-                transform.position,
-                transform.rotation,
-                MaxPushSpeed * unityService.fixedDeltaTime,
-                layerMask,
-                QueryTriggerInteraction.Ignore,
-                SkinWidth / 2);
-
-            // Allow player to move
-            KCCBounce[] bounces = moves.SelectMany(move => GetMovement(move)).ToArray();
-
-            // Compute player relative movement state based on final pos
-            bool snappedUp = bounces.Any(bounce => bounce.action == KCCUtils.MovementAction.SnapUp);
-            bool snappedDown = ShouldSnapDown(snappedUp, moves);
-
-            // Only snap down if the player was grounded before they started
-            // moving and are not currently trying to move upwards.
-            if (snappedDown)
-            {
-                SnapPlayerDown();
-            }
-
-            CheckGrounded(snappedUp, snappedDown);
-
-            Vector3 delta = transform.position - start;
-            transform.position += RelativeParentConfig.UpdateMovingGround(start, transform.rotation, GroundedState, delta, unityService.fixedDeltaTime);
-            previousPosition = transform.position;
-            return bounces;
+        /// <summary>
+        /// Same as <see cref="MovePlayer(float, Vector3)"/> but with two moves resolved one after
+        /// the other, e.g. a ground-projected walk and a separate vertical velocity.
+        /// </summary>
+        public void MovePlayer(float deltaTime, Vector3 firstMove, Vector3 secondMove)
+        {
+            MovePlayerInternal(deltaTime, firstMove, secondMove, 2);
         }
 
         /// <summary>
@@ -349,10 +306,12 @@ namespace nickmaltbie.OpenKCC.Character
         {
             RelativeParentConfig.Reset();
             transform.position = position;
+            ResetVelocityTracking();
 
-            foreach (IOnPlayerTeleport tele in GetComponents<IOnPlayerTeleport>())
+            GetComponents(_teleportListeners);
+            for (int i = 0; i < _teleportListeners.Count; i++)
             {
-                tele.OnPlayerTeleport(position, transform.rotation);
+                _teleportListeners[i].OnPlayerTeleport(position, transform.rotation);
             }
         }
 
@@ -404,8 +363,8 @@ namespace nickmaltbie.OpenKCC.Character
                 transform.rotation,
                 -Up,
                 GroundCheckDistance,
-                out IRaycastHit hit,
-                layerMask,
+                out RaycastHit hit,
+                LayerMask,
                 skinWidth: SkinWidth);
 
             Vector3 normal = hit.normal;
@@ -413,20 +372,23 @@ namespace nickmaltbie.OpenKCC.Character
             {
                 normal = GroundedState.SurfaceNormal;
             }
-            else if (!snappedUp && snappedDown)
+            else if (snappedDown)
             {
                 // Check if we're walking down stairs
                 bool overrideNormal = ColliderCast.DoRaycastInDirection(
-                    transform.position + skinWidth * Up,
+                    transform.position + SkinWidth * Up,
                     -Up,
-                    GroundCheckDistance + skinWidth,
-                    out IRaycastHit stepHit,
-                    layerMask);
+                    GroundCheckDistance + SkinWidth,
+                    out RaycastHit stepHit,
+                    LayerMask);
                 if (overrideNormal)
                 {
                     normal = stepHit.normal;
                 }
             }
+
+            GameObject floor = didHit ? hit.collider.gameObject : null;
+            UpdateFloorComponents(floor);
 
             GroundedState = new KCCGroundedState(
                 distanceToGround: hit.distance,
@@ -434,51 +396,31 @@ namespace nickmaltbie.OpenKCC.Character
                 angle: Vector3.Angle(normal, Up),
                 surfaceNormal: normal,
                 groundHitPosition: hit.point,
-                floor: hit.collider?.gameObject,
+                floor: floor,
                 groundedDistance: GroundedDistance,
                 maxWalkAngle: MaxWalkAngle);
 
             return GroundedState;
         }
 
-        public void OnBeforeSerialize()
-        {
-            // Nothing needed here.
-        }
-
-        public void OnAfterDeserialize()
-        {
-            // If the serialization version is unset, update it.
-            if (string.IsNullOrEmpty(serializationVersion))
-            {
-                serializationVersion = CurrentSerializationVersion;
-
-                // Set default value for layer mask
-                if (layerMask == default)
-                {
-                    layerMask = ~0;
-                }
-            }
-        }
-
         /// <summary>
         /// Should the player snap down after a movement.
         /// </summary>
         /// <param name="snappedUp">Did the player snap up during their movement.</param>
-        /// <param name="moves">Movement bounces of the player.</param>
+        /// <param name="anyMoveUp">Was any of the moves of this tick directed upwards.</param>
         /// <returns>True if the player should snap down, false otherwise.</returns>
-        protected virtual bool ShouldSnapDown(bool snappedUp, IEnumerable<Vector3> moves)
+        protected virtual bool ShouldSnapDown(bool snappedUp, bool anyMoveUp)
         {
             return !snappedUp &&
                 GroundedState.StandingOnGround &&
                 !GroundedState.Sliding &&
-                !moves.Any(move => MovingUp(move));
+                !anyMoveUp;
         }
 
         /// <summary>
         /// Snap the player down onto the ground
         /// </summary>
-        protected virtual void SnapPlayerDown()
+        protected virtual void SnapPlayerDown(float deltaTime)
         {
             Vector3 delta = KCCUtils.GetSnapDelta(
                 transform.position,
@@ -487,8 +429,97 @@ namespace nickmaltbie.OpenKCC.Character
                 SnapDown,
                 ColliderCast,
                 LayerMask,
-                skinWidth);
-            transform.position += Vector3.ClampMagnitude(delta, MaxSnapDownSpeed * unityService.fixedDeltaTime);
+                SkinWidth);
+            transform.position += Vector3.ClampMagnitude(delta, MaxSnapDownSpeed * deltaTime);
+        }
+
+        private void MovePlayerInternal(float deltaTime, Vector3 firstMove, Vector3 secondMove, int moveCount)
+        {
+            if (deltaTime <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(deltaTime), deltaTime, $"{name}: deltaTime must be positive");
+            }
+
+            RelativeParentConfig.FollowGround(transform);
+            worldVelocity.AddSample((transform.position - _previousPosition) / deltaTime);
+
+            Vector3 start = transform.position;
+
+            // Push player out of overlapping objects
+            transform.position += ColliderCast.PushOutOverlapping(
+                transform.position,
+                transform.rotation,
+                MaxPushSpeed * deltaTime,
+                LayerMask,
+                QueryTriggerInteraction.Ignore,
+                SkinWidth / 2);
+
+            _bounces.Clear();
+            ApplyMove(firstMove);
+            if (moveCount > 1)
+            {
+                ApplyMove(secondMove);
+            }
+
+            bool snappedUp = false;
+            for (int i = 0; i < _bounces.Count; i++)
+            {
+                if (_bounces[i].action == KCCUtils.MovementAction.SnapUp)
+                {
+                    snappedUp = true;
+                    break;
+                }
+            }
+
+            bool anyMoveUp = MovingUp(firstMove) || (moveCount > 1 && MovingUp(secondMove));
+
+            // Only snap down if the player was grounded before they started
+            // moving and are not currently trying to move upwards.
+            bool snappedDown = ShouldSnapDown(snappedUp, anyMoveUp);
+            if (snappedDown)
+            {
+                SnapPlayerDown(deltaTime);
+            }
+
+            CheckGrounded(snappedUp, snappedDown);
+
+            Vector3 delta = transform.position - start;
+            transform.position += RelativeParentConfig.UpdateMovingGround(
+                start, transform.rotation, GroundedState, _floorMovingGround, delta, deltaTime);
+            _previousPosition = transform.position;
+        }
+
+        private void ApplyMove(Vector3 move)
+        {
+            KCCUtils.GetBounces(transform.position, move, transform.rotation, this, _bounces);
+
+            // GetBounces always ends with a Stop bounce holding the final position.
+            transform.position = _bounces[_bounces.Count - 1].finalPosition;
+        }
+
+        private void UpdateFloorComponents(GameObject floor)
+        {
+            // Reference comparison: a destroyed floor equals null under Unity's ==, which would keep
+            // its stale components cached.
+            if (ReferenceEquals(floor, _floor))
+            {
+                return;
+            }
+
+            _floor = floor;
+            _floorMovingGround = null;
+            _floorRigidbody = null;
+            if (floor != null)
+            {
+                floor.TryGetComponent(out _floorMovingGround);
+                floor.TryGetComponent(out _floorRigidbody);
+            }
+        }
+
+        private void ResetVelocityTracking()
+        {
+            _previousPosition = transform.position;
+            worldVelocity.Clear();
         }
     }
 }

@@ -1,20 +1,25 @@
 # OpenKCC (vendored core)
 
 Source: https://github.com/nicholas-maltbie/OpenKCC, commit `a1a30ed` (2023-09-14), package `com.nickmaltbie.openkcc` 1.5.0.
-`TestUtils/` comes from https://github.com/nicholas-maltbie/TestUtilsUnity (`IUnityService`, `UnityService` only).
-Both are MIT, see `LICENSE.txt` and `TestUtils/LICENSE.txt`.
+MIT, see `LICENSE.txt`.
 
-Only the collision core is copied (movement engine, collider casts, grounded state, moving ground, utils).
-Camera, UI, input, animation/foot IK, samples and the author's tests (they need Moq) are left out.
+Only the collision core is kept: movement engine, capsule cast, grounded state, moving ground and utils.
+Camera, UI, input, animation/foot IK, samples, the author's tests (they need Moq), other collider shapes,
+debug helpers and TestUtilsUnity are left out.
 
 ## Local changes
 
-- `KCCMovementEngine`: default `RelativeParentConfig` instead of `RelativeParentConfigWithFeet` (foot IK not vendored).
-- `KCCMovementEngine.worldVelocity`: `[NonSerialized]` (Unity 6 serialization analyzer, UAC1001).
-- `ColliderConfiguration`: no longer derives from `PropertyAttribute` (its drawer is not vendored; UAC1002).
+- `KCCMovementEngine.MovePlayer(deltaTime, move[, secondMove])`: allocation-free, explicit delta time
+  (no static time service), bounces written to a reused buffer exposed as `LastBounces`.
+- Floor components (`IMovingGround`, `Rigidbody`) looked up once when the floor changes, not every tick;
+  no `?.` / `??` on Unity objects.
+- `IColliderCast` returns plain `RaycastHit` through `out`; no LINQ, no wrapper classes.
+- `CapsuleColliderCast` always reads dimensions from its `CapsuleCollider` (upstream used stale cached
+  values in builds).
+- `KCCUtils.GetBounces` fills a list instead of a `yield` iterator; `KCCBounce` is a struct; step-up uses
+  the configured up direction instead of `Vector3.up`.
+- `IKCCGrounded` removed: passing `KCCGroundedState` through it boxed every tick.
+- `TeleportPlayer` resets velocity tracking, so a teleport no longer counts as a huge velocity sample.
+- Default `RelativeParentConfig` instead of `RelativeParentConfigWithFeet` (foot IK not vendored).
 
-## Known issues to fix before building movement on it
-
-- `MovePlayer` allocates 2.5–5 KB per tick (LINQ, `yield` iterators, `params` array).
-- Static `UnityService.Instance` for time; `deltaTime` and `fixedDeltaTime` are mixed.
-- `?.` on Unity objects and `GetComponent` in the hot path.
+Regression scenarios: `Assets/_Project/Tests/EditMode/KccMovementEngineTests.cs`.

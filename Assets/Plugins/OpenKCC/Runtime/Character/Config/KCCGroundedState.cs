@@ -26,7 +26,7 @@ namespace nickmaltbie.OpenKCC.Character.Config
     /// a given kinematic character controller.
     /// </summary>
     [Serializable]
-    public struct KCCGroundedState : IKCCGrounded
+    public struct KCCGroundedState
     {
         /// <summary>
         /// Current distance the player is from the ground.

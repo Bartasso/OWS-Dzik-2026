@@ -16,216 +16,168 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using UnityEngine;
 
 namespace nickmaltbie.OpenKCC.Utils.ColliderCast
 {
     /// <summary>
-    /// ColliderCast behaviour intended to work with any capsule collider shape.
+    /// Allocation-free physics queries for a character shaped by its <see cref="CapsuleCollider"/>.
+    /// The collider is the single source of the dimensions, in the editor and in builds alike.
     /// </summary>
-    public class CapsuleColliderCast : AbstractPrimitiveColliderCast
+    [RequireComponent(typeof(CapsuleCollider))]
+    public class CapsuleColliderCast : MonoBehaviour, IColliderCast
     {
         /// <summary>
-        /// Default center for capsule collider.
+        /// Maximum number of hits or overlaps considered per query.
         /// </summary>
-        /// <returns></returns>
-        private static readonly Vector3 DefaultCenter = new Vector3(0, 1, 0);
+        public const int QueryCacheSize = 25;
+
+        private readonly Collider[] _overlapCache = new Collider[QueryCacheSize];
+        private readonly RaycastHit[] _hitCache = new RaycastHit[QueryCacheSize];
+        private CapsuleCollider _capsule;
 
         /// <summary>
-        /// Radius of the capsule.
+        /// Capsule that defines the shape of the character.
         /// </summary>
-        [SerializeField]
-        [Tooltip("Radius of the capsule.")]
-        public float radius = 0.5f;
-
-        /// <summary>
-        /// Height of the capsule.
-        /// </summary>
-        [SerializeField]
-        [Tooltip("Height of the capsule.")]
-        public float height = 2.0f;
-
-        /// <summary>
-        /// Center of the capsule.
-        /// </summary>
-        [SerializeField]
-        [Tooltip("Center of the capsule.")]
-        public Vector3 center = DefaultCenter;
-
-        /// <summary>
-        /// Direction of the capsule.
-        /// </summary>
-        [SerializeField]
-        [Tooltip("Direction of the capsule.")]
-        private CapsuleDirection capsuleDirection = CapsuleDirection.Y;
-
-        /// <summary>
-        /// Capsule collider associated with this object.
-        /// </summary>
-        [HideInInspector]
-        [SerializeField]
-        private CapsuleCollider capsuleCollider = null;
-
-        /// <summary>
-        /// Mesh of capsule for debug drawing.
-        /// </summary>
-        private Mesh _debugCapsuleMesh;
-
-        /// <summary>
-        /// Debug mesh associated with capsule collider.
-        /// </summary>
-        public Mesh DebugCapsuleMesh => _debugCapsuleMesh = _debugCapsuleMesh ??
-            CapsuleMaker.CapsuleData(radius: radius, depth: height - radius * 2);
-
-        /// <summary>
-        /// Gets transformed parameters describing this capsule collider for a given position and rotation
-        /// </summary>
-        /// <param name="capsuleCenter">Center of the capsule collider in relative position.</param>
-        /// <param name="capsuleRadius">Radius of the capsule</param>
-        /// <param name="capsuleHeight">Height of the capsule.</param>
-        /// <param name="capsuleDirection">Direction of the capsule.</param>
-        /// <param name="position">Position of the object.</param>
-        /// <param name="rotation">Rotation of the object.</param>
-        /// <param name="radiusMod">Modifier to add to radius when computing shape of collider.</param>
-        /// <returns>The top, bottom, radius, and height of the capsule collider</returns>
-        public static (Vector3, Vector3, float, float) GetParams(Vector3 capsuleCenter, float capsuleRadius, float capsuleHeight, CapsuleDirection capsuleDirection, Vector3 position, Quaternion rotation, float radiusMod = 0.0f)
+        public CapsuleCollider Capsule
         {
-            Vector3 center = rotation * capsuleCenter + position;
-            float radius = capsuleRadius + radiusMod;
-            float height = capsuleHeight + radiusMod * 2;
+            get
+            {
+                if (_capsule == null)
+                {
+                    _capsule = GetComponent<CapsuleCollider>();
+                    if (_capsule == null)
+                    {
+                        throw new InvalidOperationException($"{name}: missing CapsuleCollider");
+                    }
+                }
 
-            Vector3 up = GetCapsuleRelativeUp(capsuleDirection);
-            Vector3 bottom = center + rotation * -up * (height / 2 - radius);
-            Vector3 top = center + rotation * up * (height / 2 - radius);
-
-            return (top, bottom, radius, height);
-        }
-
-        /// <summary>
-        /// Gets transformed parameters describing this capsule collider for a given position and rotation
-        /// </summary>
-        /// <param name="position">Position of the object.</param>
-        /// <param name="rotation">Rotation of the object.</param>
-        /// <param name="radiusMod">Modifier to add to radius when computing shape of collider.</param>
-        /// <returns>The top, bottom, radius, and height of the capsule collider</returns>
-        public (Vector3, Vector3, float, float) GetParams(Vector3 position, Quaternion rotation, float radiusMod = 0.0f)
-        {
-            return GetParams(center, radius, height, capsuleDirection, position, rotation, radiusMod);
+                return _capsule;
+            }
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<Collider> GetOverlapping(
-            Vector3 position,
-            Quaternion rotation,
-            int layerMask = RaycastHelperConstants.DefaultLayerMask,
-            QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction,
-            float skinWidth = 0.0f)
-        {
-            (Vector3 top, Vector3 bottom, float radius, float height) = GetParams(position, rotation, -skinWidth);
-            int overlap = Physics.OverlapCapsuleNonAlloc(top, bottom, radius, OverlapCache, layerMask, queryTriggerInteraction);
-            return Enumerable.Range(0, overlap).Select(i => OverlapCache[i]).Where(c => c.transform != transform);
-        }
-
-        /// <inheritdoc/>
-        public override IEnumerable<RaycastHit> GetHits(
+        public bool CastSelf(
             Vector3 position,
             Quaternion rotation,
             Vector3 direction,
             float distance,
+            out RaycastHit hit,
             int layerMask = RaycastHelperConstants.DefaultLayerMask,
             QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction,
             float skinWidth = 0.01f)
         {
-            (Vector3 top, Vector3 bottom, float radius, float height) = GetParams(position, rotation, -skinWidth);
-            int hits = Physics.CapsuleCastNonAlloc(top, bottom, radius, direction, HitCache, distance + skinWidth, layerMask, queryTriggerInteraction);
-            return Enumerable.Range(0, hits).Select(i => HitCache[i])
-                .Where(hit => hit.collider.transform != transform)
-                .Select(hit =>
+            GetCapsule(position, rotation, -skinWidth, out Vector3 top, out Vector3 bottom, out float radius);
+            int count = Physics.CapsuleCastNonAlloc(top, bottom, radius, direction, _hitCache, distance + skinWidth, layerMask, queryTriggerInteraction);
+
+            hit = default;
+            hit.distance = Mathf.Infinity;
+            bool hitSomething = false;
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit candidate = _hitCache[i];
+                if (candidate.collider.transform == transform)
                 {
-                    hit.distance = Mathf.Max(hit.distance - skinWidth, 0);
-                    return hit;
-                });
-        }
+                    continue;
+                }
 
-        /// <inheritdoc/>
-        public override Vector3 GetBottom(Vector3 position, Quaternion rotation)
-        {
-            (_, Vector3 bottom, float radius, _) = GetParams(position, rotation);
-            return bottom + radius * (rotation * -GetCapsuleRelativeUp(capsuleDirection));
-        }
+                float candidateDistance = Mathf.Max(candidate.distance - skinWidth, 0);
+                if (candidateDistance < hit.distance)
+                {
+                    hit = candidate;
+                    hit.distance = candidateDistance;
+                }
 
-        /// <inheritdoc/>
-        protected override Collider SetupColliderComponent()
-        {
-#if UNITY_EDITOR
-            // Some magic to auto update the parameters from existing collider
-            CapsuleCollider existingCollider = GetComponent<CapsuleCollider>();
-            if (capsuleCollider == null && existingCollider != null)
-            {
-                capsuleCollider = existingCollider;
-                radius = existingCollider.radius;
-                center = existingCollider.center;
-                height = existingCollider.height;
-                capsuleDirection = GetCapsuleDirection(existingCollider.direction);
-            }
-#endif
-
-            capsuleCollider = gameObject.GetComponent<CapsuleCollider>();
-            if (capsuleCollider == null)
-            {
-                capsuleCollider = gameObject.AddComponent<CapsuleCollider>();
+                hitSomething = true;
             }
 
-            return capsuleCollider;
+            return hitSomething;
         }
 
         /// <inheritdoc/>
-        public override void UpdateColliderParameters()
+        public Vector3 PushOutOverlapping(
+            Vector3 position,
+            Quaternion rotation,
+            float maxDistance,
+            int layerMask = RaycastHelperConstants.DefaultLayerMask,
+            QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction,
+            float skinWidth = 0.0f)
         {
-            base.UpdateColliderParameters();
-            capsuleCollider.radius = radius;
-            capsuleCollider.height = height;
-            capsuleCollider.center = center;
-            capsuleCollider.direction = (int)capsuleDirection;
+            GetCapsule(position, rotation, -skinWidth, out Vector3 top, out Vector3 bottom, out float radius);
+            int count = Physics.OverlapCapsuleNonAlloc(top, bottom, radius, _overlapCache, layerMask, queryTriggerInteraction);
+
+            Vector3 pushed = Vector3.zero;
+            for (int i = 0; i < count; i++)
+            {
+                Collider overlap = _overlapCache[i];
+                if (overlap.transform == transform)
+                {
+                    continue;
+                }
+
+                Transform other = overlap.transform;
+                Physics.ComputePenetration(
+                    Capsule, position, rotation,
+                    overlap, other.position, other.rotation,
+                    out Vector3 direction, out float distance);
+
+                Vector3 push = direction.normalized * distance;
+                pushed += push;
+                position += push;
+            }
+
+            return Vector3.ClampMagnitude(pushed, maxDistance);
+        }
+
+        /// <inheritdoc/>
+        public bool DoRaycastInDirection(
+            Vector3 source,
+            Vector3 direction,
+            float distance,
+            out RaycastHit stepHit,
+            int layerMask = RaycastHelperConstants.DefaultLayerMask,
+            QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction)
+        {
+            return Physics.Raycast(source, direction, out stepHit, distance, layerMask, queryTriggerInteraction);
+        }
+
+        /// <inheritdoc/>
+        public Vector3 GetBottom(Vector3 position, Quaternion rotation)
+        {
+            GetCapsule(position, rotation, 0f, out _, out Vector3 bottom, out float radius);
+            return bottom + radius * (rotation * -GetCapsuleRelativeUp(Capsule.direction));
         }
 
         /// <summary>
-        /// Get relative up direction for the capsule based on capsule direction.
+        /// Centres of the capsule's end spheres and its radius, grown by a radius modifier.
         /// </summary>
-        /// <param name="dir">Direction from a Capsule Collider.</param>
-        /// <returns></returns>
-        public static Vector3 GetCapsuleRelativeUp(CapsuleDirection capsuleDirection)
+        public void GetCapsule(Vector3 position, Quaternion rotation, float radiusMod, out Vector3 top, out Vector3 bottom, out float radius)
         {
-            switch (capsuleDirection)
+            CapsuleCollider capsule = Capsule;
+            Vector3 center = rotation * capsule.center + position;
+            radius = capsule.radius + radiusMod;
+            float height = capsule.height + radiusMod * 2;
+            Vector3 up = rotation * GetCapsuleRelativeUp(capsule.direction);
+            float halfSegment = Mathf.Max(height / 2 - radius, 0f);
+            bottom = center - up * halfSegment;
+            top = center + up * halfSegment;
+        }
+
+        /// <summary>
+        /// Local axis of a <see cref="CapsuleCollider.direction"/> value (0 = X, 1 = Y, 2 = Z).
+        /// </summary>
+        public static Vector3 GetCapsuleRelativeUp(int direction)
+        {
+            switch (direction)
             {
-                default:
-                case CapsuleDirection.Y:
-                    return Vector3.up;
-                case CapsuleDirection.X:
+                case 0:
                     return Vector3.right;
-                case CapsuleDirection.Z:
+                case 2:
                     return Vector3.forward;
+                default:
+                    return Vector3.up;
             }
-        }
-
-        /// <summary>
-        /// See https://docs.unity3d.com/ScriptReference/CapsuleCollider-direction.html
-        /// </summary>
-        /// <param name="dir">Direction from a Capsule Collider.</param>
-        /// <returns>CapsuleCollider direction from int to CapsuleDirection</returns>
-        private static CapsuleDirection GetCapsuleDirection(int dir)
-        {
-            return (CapsuleDirection)dir;
-        }
-
-        /// <summary>
-        /// Debug function to reset the attached collider attribute.
-        /// </summary>
-        internal void ResetConfigDebug()
-        {
-            capsuleCollider = null;
         }
     }
 }

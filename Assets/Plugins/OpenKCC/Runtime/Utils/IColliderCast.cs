@@ -16,73 +16,65 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace nickmaltbie.OpenKCC.Utils
 {
     /// <summary>
-    /// Abstraction to check for collisions and compute when this object would hit other objects.
+    /// Default values for physics queries.
     /// </summary>
-    public interface IColliderCast : IRaycastHelper
+    public static class RaycastHelperConstants
+    {
+        public const int DefaultLayerMask = ~0;
+
+        public const QueryTriggerInteraction DefaultQueryTriggerInteraction = QueryTriggerInteraction.Ignore;
+    }
+
+    /// <summary>
+    /// Physics queries against the shape of a character. Implementations must not allocate:
+    /// hits are returned as plain <see cref="RaycastHit"/> values.
+    /// </summary>
+    public interface IColliderCast
     {
         /// <summary>
-        /// Gets the bottom of the bounds of the collider.
+        /// Lowest point of the shape at a given position and rotation.
         /// </summary>
-        /// <param name="position">Position of the object when it is being checked.</param>
-        /// <param name="rotation">Rotation of the objecting when it is being checked.</param>
-        /// <returns>Bottom of the bounds of the collider.</returns>
         Vector3 GetBottom(Vector3 position, Quaternion rotation);
 
         /// <summary>
-        /// Gets the list of objects overlapping with this object.
+        /// Casts the shape along a direction and returns the closest hit that is not the shape itself.
+        /// Without a hit, <paramref name="hit"/> is default with an infinite distance.
         /// </summary>
-        /// <param name="position">Position of the object when it is being checked.</param>
-        /// <param name="rotation">Rotation of the objecting when it is being checked.</param>
-        /// <param name="layerMask">Layer mask for checking which objects to collide with.</param>
-        /// <param name="queryTriggerInteraction">Configuration for QueryTriggerInteraction when solving for collisions.</param>
-        /// <param name="skinWidth">Buffer around player when computing overlapping objects.</param>
-        /// <returns>The list of overlapping objects with this object.</returns>
-        IEnumerable<Collider> GetOverlapping(Vector3 position, Quaternion rotation, int layerMask = RaycastHelperConstants.DefaultLayerMask, QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction, float skinWidth = 0.0f);
+        bool CastSelf(
+            Vector3 position,
+            Quaternion rotation,
+            Vector3 direction,
+            float distance,
+            out RaycastHit hit,
+            int layerMask = RaycastHelperConstants.DefaultLayerMask,
+            QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction,
+            float skinWidth = 0.01f);
 
         /// <summary>
-        /// Cast self and get the objects hit that exclude this object.
+        /// Offset that pushes the shape out of everything it overlaps, clamped to a maximum distance.
         /// </summary>
-        /// <param name="direction">Direction to cast self collider.</param>
-        /// <param name="distance">Distance to cast self collider.</param>
-        /// <param name="position">Position of the object when it is being raycast.</param>
-        /// <param name="rotation">Rotation of the objecting when it is being raycast.</param>
-        /// <param name="layerMask">Layer mask for checking which objects to collide with.</param>
-        /// <param name="queryTriggerInteraction">Configuration for QueryTriggerInteraction when solving for collisions.</param>
-        /// <param name="skinWidth">Buffer around player when computing collisions.</param>
-        /// <returns>List of objects this hits when it is being raycast</returns>
-        IEnumerable<RaycastHit> GetHits(Vector3 position, Quaternion rotation, Vector3 direction, float distance, int layerMask = RaycastHelperConstants.DefaultLayerMask, QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction, float skinWidth = 0.01f);
+        Vector3 PushOutOverlapping(
+            Vector3 position,
+            Quaternion rotation,
+            float maxDistance,
+            int layerMask = RaycastHelperConstants.DefaultLayerMask,
+            QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction,
+            float skinWidth = 0.0f);
 
         /// <summary>
-        /// Cast self in a given direction and get the first object hit.
+        /// Plain raycast from a point.
         /// </summary>
-        /// <param name="position">Position of the object when it is being raycast.</param>
-        /// <param name="rotation">Rotation of the objecting when it is being raycast.</param>
-        /// <param name="direction">Direction of the raycast.</param>
-        /// <param name="distance">Maximum distance of raycast.</param>
-        /// <param name="hit">First object hit and related information, will have a distance of Infinity if none
-        /// is found.</param>
-        /// <param name="layerMask">Layer mask for checking which objects to collide with.</param>
-        /// <param name="queryTriggerInteraction">Configuration for QueryTriggerInteraction when solving for collisions.</param>
-        /// <param name="skinWidth">Buffer around player when casting object.</param>
-        /// <returns>True if an object is hit within distance, false otherwise.</returns>
-        bool CastSelf(Vector3 position, Quaternion rotation, Vector3 direction, float distance, out IRaycastHit hit, int layerMask = RaycastHelperConstants.DefaultLayerMask, QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction, float skinWidth = 0.01f);
-
-        /// <summary>
-        /// Get the vector to push this object out of overlapping objects with a max distance.
-        /// </summary>
-        /// <param name="position">Position of the object when it is being raycast.</param>
-        /// <param name="rotation">Rotation of the objecting when it is being raycast.</param>
-        /// <param name="maxDistance">Maximum distance the player can be pushed</param>
-        /// <param name="layerMask">Layer mask for checking which objects to collide with.</param>
-        /// <param name="queryTriggerInteraction">Configuration for QueryTriggerInteraction when solving for collisions.</param>
-        /// <param name="skinWidth">Buffer around player when computing overlapping objects.</param>
-        /// <returns>Direction to push the object, distance player was pushed.</returns>
-        Vector3 PushOutOverlapping(Vector3 position, Quaternion rotation, float maxDistance, int layerMask = RaycastHelperConstants.DefaultLayerMask, QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction, float skinWidth = 0.0f);
+        bool DoRaycastInDirection(
+            Vector3 source,
+            Vector3 direction,
+            float distance,
+            out RaycastHit stepHit,
+            int layerMask = RaycastHelperConstants.DefaultLayerMask,
+            QueryTriggerInteraction queryTriggerInteraction = RaycastHelperConstants.DefaultQueryTriggerInteraction);
     }
 }

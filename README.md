@@ -97,6 +97,6 @@ docs/                     GDD, open questions, third-party assets
 
 ## Third-party licenses
 
-- [OpenKCC](https://github.com/nicholas-maltbie/OpenKCC) and TestUtilsUnity by Nicholas Maltbie, MIT:
+- [OpenKCC](https://github.com/nicholas-maltbie/OpenKCC) by Nicholas Maltbie, MIT:
   `Assets/Plugins/OpenKCC/`.
 - PSX asset packs (heyheythere, StarkCrafts) are purchased and kept local only, outside the repository.

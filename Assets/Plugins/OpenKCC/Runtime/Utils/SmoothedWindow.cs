@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Nicholas Maltbie
+// Copyright (C) 2023 Nicholas Maltbie
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -16,9 +16,7 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using UnityEngine;
 
 namespace nickmaltbie.OpenKCC.Utils
@@ -42,12 +40,6 @@ namespace nickmaltbie.OpenKCC.Utils
         protected int CurrentIdx { get; private set; }
 
         /// <summary>
-        /// Get values for debugging.
-        /// </summary>
-        internal IEnumerable<E> Values =>
-            Enumerable.Range(0, Count).Select(index => Samples[(CurrentIdx + index) % Count]);
-
-        /// <summary>
         /// Count of 
         /// </summary>
         /// <value></value>
@@ -60,6 +52,16 @@ namespace nickmaltbie.OpenKCC.Utils
         public SmoothedWindow(int size)
         {
             Samples = new E[size];
+        }
+
+        /// <summary>
+        /// Forgets every sample.
+        /// </summary>
+        public virtual void Clear()
+        {
+            System.Array.Clear(Samples, 0, Samples.Length);
+            CurrentIdx = 0;
+            Count = 0;
         }
 
         /// <summary>
@@ -94,6 +96,13 @@ namespace nickmaltbie.OpenKCC.Utils
         /// </summary>
         /// <param name="size">Size of smoothing window.</param>
         public SmoothedVector(int size) : base(size) { }
+
+        /// <inheritdoc/>
+        public override void Clear()
+        {
+            base.Clear();
+            sum = Vector3.zero;
+        }
 
         /// <summary>
         /// Returns the average of all samples in the window.

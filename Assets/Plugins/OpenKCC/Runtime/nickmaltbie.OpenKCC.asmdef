@@ -1,9 +1,7 @@
 {
     "name": "nickmaltbie.OpenKCC",
     "rootNamespace": "nickmaltbie.OpenKCC",
-    "references": [
-        "nickmaltbie.TestUtilsUnity"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

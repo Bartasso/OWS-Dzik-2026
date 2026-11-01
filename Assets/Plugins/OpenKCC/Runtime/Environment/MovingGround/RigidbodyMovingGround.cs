@@ -31,9 +31,13 @@ namespace nickmaltbie.OpenKCC.Environment.MovingGround
         [SerializeField]
         internal Rigidbody attachedRigidbody;
 
-        public void Start()
+        public void Awake()
         {
-            attachedRigidbody = attachedRigidbody ?? GetComponent<Rigidbody>();
+            // Explicit null check: ?? bypasses Unity's null semantics for unassigned references.
+            if (attachedRigidbody == null && !TryGetComponent(out attachedRigidbody))
+            {
+                throw new System.InvalidOperationException($"{name}: missing Rigidbody reference");
+            }
         }
 
         /// <inheritdoc/>

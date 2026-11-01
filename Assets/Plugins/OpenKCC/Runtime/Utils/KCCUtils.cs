@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Nicholas Maltbie
+// Copyright (C) 2023 Nicholas Maltbie
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,7 +24,7 @@ namespace nickmaltbie.OpenKCC.Utils
     /// <summary>
     /// Data structure describing a bounce of the KCC when moving throughout a scene.
     /// </summary>
-    public class KCCBounce
+    public struct KCCBounce
     {
         /// <summary>
         /// Initial position before moving.
@@ -54,7 +54,7 @@ namespace nickmaltbie.OpenKCC.Utils
         /// <summary>
         /// Collision data associated with the bounce.
         /// </summary>
-        public IRaycastHit hit;
+        public RaycastHit hit;
 
         /// <summary>
         /// Get the movement of a vector (from initial position to final position).
@@ -130,7 +130,7 @@ namespace nickmaltbie.OpenKCC.Utils
                 rotation,
                 dir,
                 dist,
-                out IRaycastHit hit,
+                out RaycastHit hit,
                 layerMask,
                 QueryTriggerInteraction.Ignore,
                 skinWidth);
@@ -192,7 +192,7 @@ namespace nickmaltbie.OpenKCC.Utils
                 rotation,
                 momentum.normalized,
                 config.StepUpDepth,
-                out IRaycastHit snapHit,
+                out RaycastHit snapHit,
                 config.LayerMask,
                 QueryTriggerInteraction.Ignore,
                 config.SkinWidth);
@@ -202,7 +202,7 @@ namespace nickmaltbie.OpenKCC.Utils
             {
                 // Have the player move up up to the remaining momentum
                 float distanceMove = Mathf.Min(momentum.magnitude, distanceToSnap);
-                position += distanceMove * Vector3.up;
+                position += distanceMove * config.Up;
                 return true;
             }
 
@@ -220,7 +220,7 @@ namespace nickmaltbie.OpenKCC.Utils
         /// <param name="config">Configuration for collider cast calls.</param>
         /// <returns>True if the step is perpendicular to up, false otherwise.</returns>
         public static bool CheckPerpendicularBounce(
-            IRaycastHit hit,
+            RaycastHit hit,
             Vector3 momentum,
             IKCCConfig config)
         {
@@ -228,7 +228,7 @@ namespace nickmaltbie.OpenKCC.Utils
                 hit.point - config.Up * Epsilon + hit.normal * Epsilon,
                 momentum.normalized,
                 momentum.magnitude,
-                out IRaycastHit stepHit,
+                out RaycastHit stepHit,
                 config.LayerMask,
                 QueryTriggerInteraction.Ignore);
             return hitStep && Vector3.Dot(stepHit.normal, config.Up) <= Epsilon;
@@ -248,7 +248,7 @@ namespace nickmaltbie.OpenKCC.Utils
         /// <param name="stepUpDepth">Minimum depth required to have the player step forward.</param>
         /// <returns>True if the player snapped up, false otherwise.</returns>
         public static bool AttemptSnapUp(
-            IRaycastHit hit,
+            RaycastHit hit,
             ref Vector3 momentum,
             ref Vector3 position,
             Quaternion rotation,
@@ -337,7 +337,7 @@ namespace nickmaltbie.OpenKCC.Utils
                 rotation,
                 remainingMomentum.normalized,
                 distance,
-                out IRaycastHit hit,
+                out RaycastHit hit,
                 config.LayerMask,
                 QueryTriggerInteraction.Ignore,
                 config.SkinWidth))
@@ -411,12 +411,13 @@ namespace nickmaltbie.OpenKCC.Utils
         /// <param name="movement">Movement to move the player.</param>
         /// <param name="rotation">Rotation of the player during movement.</param>
         /// <param name="config">Configuration settings for player movement.</param>
-        /// <returns>Bounces that the player makes when hitting objects as part of it's movement.</returns>
-        public static IEnumerable<KCCBounce> GetBounces(
+        /// <param name="results">Receives the bounces, ending with a Stop bounce; not cleared first.</param>
+        public static void GetBounces(
             Vector3 position,
             Vector3 movement,
             Quaternion rotation,
-            IKCCConfig config)
+            IKCCConfig config,
+            List<KCCBounce> results)
         {
             // Save current momentum
             Vector3 momentum = movement;
@@ -439,7 +440,7 @@ namespace nickmaltbie.OpenKCC.Utils
                     break;
                 }
 
-                yield return bounce;
+                results.Add(bounce);
 
                 momentum = bounce.remainingMomentum;
                 position = bounce.finalPosition;
@@ -454,15 +455,14 @@ namespace nickmaltbie.OpenKCC.Utils
             }
 
             // We're done, player was moved as part of loop
-            yield return new KCCBounce
+            results.Add(new KCCBounce
             {
                 initialPosition = position,
                 finalPosition = position,
                 initialMomentum = Vector3.zero,
                 remainingMomentum = Vector3.zero,
                 action = MovementAction.Stop,
-            };
-            yield break;
+            });
         }
     }
 }

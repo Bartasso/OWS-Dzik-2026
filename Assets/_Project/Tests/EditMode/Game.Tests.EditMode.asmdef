@@ -5,6 +5,7 @@
         "Game.Core",
         "Game.Data",
         "Game.Gameplay",
+        "nickmaltbie.OpenKCC",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
