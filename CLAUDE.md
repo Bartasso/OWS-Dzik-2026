@@ -3,6 +3,7 @@
 Roguelike TPP (Risk of Rain 2 + Megabonk + D&D) z moimi znajomymi jako bohaterami.
 Pełne zasady gry: `docs/GDD.md`. **GDD jest źródłem prawdy dla mechanik.** Jeśli kod i GDD się rozjeżdżają, zatrzymaj się i zapytaj, nie zgaduj.
 Znane sprzeczności i nierozstrzygnięte kwestie: `docs/OPEN_QUESTIONS.md`. Sprawdź go przed pracą nad danym systemem.
+**Na starcie sesji przeczytaj `docs/WORKLOG.md`**: aktualny stan, następny krok, pułapki.
 
 Komunikacja ze mną: po polsku. Kod, nazwy, komentarze i commity: po angielsku.
 
@@ -164,6 +165,7 @@ Cel: stabilne 60 FPS przy 300+ wrogach.
 3. Po zmianach: sprawdź kompilację i konsolę przez Unity MCP, uruchom testy.
 4. Zero błędów i ostrzeżeń kompilatora przed zgłoszeniem, że gotowe.
 5. Podsumowanie: co zmieniłeś, co mam sprawdzić w Play Mode, propozycja commita.
+6. Przy każdym commicie zaktualizuj `docs/WORKLOG.md` w tym samym commicie: popraw sekcję „Teraz” i dopisz jedną linię na górę „Historii” (data i co, bez hasha). Nie przepisuj całego pliku, edytuj tylko te miejsca. Starsze wpisy ponad ok. 10 usuwaj. „Mapę” i „Pułapki” zmieniaj tylko wtedy, gdy przestały być prawdziwe albo odkryłeś coś, co oszczędzi czas następnej sesji.
 
 Testy bez edytora (gdy MCP nie działa):
 
