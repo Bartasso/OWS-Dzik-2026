@@ -7,6 +7,7 @@ using Game.Gameplay.Input;
 using Game.Gameplay.Player;
 using Game.Gameplay.SkillChecks;
 using Game.Presentation;
+using nickmaltbie.OpenKCC.Character;
 using Game.Sandbox;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -94,8 +95,12 @@ namespace Game.Editor
 
             BuildEnvironment();
             Camera camera = BuildCamera();
-            (GameObject player, PlayerAim aim, PlayerMotor motor, PlayerShooter shooter, PlayerHealth health, Interactor interactor) = BuildPlayer(input);
-            Edit(camera.gameObject.AddComponent<ThirdPersonCamera>(), s => SetObject(s, "_aim", aim));
+            (GameObject player, Transform visual, PlayerAim aim, PlayerMotor motor, PlayerShooter shooter, PlayerHealth health, Interactor interactor) = BuildPlayer(input);
+            Edit(camera.gameObject.AddComponent<ThirdPersonCamera>(), s =>
+            {
+                SetObject(s, "_aim", aim);
+                SetObject(s, "_target", visual);
+            });
 
             var game = new GameObject("Game");
             var bootstrap = game.AddComponent<GameBootstrap>();
@@ -245,19 +250,17 @@ namespace Game.Editor
             return camera;
         }
 
-        private static (GameObject, PlayerAim, PlayerMotor, PlayerShooter, PlayerHealth, Interactor) BuildPlayer(InputActionAsset input)
+        private static (GameObject, Transform, PlayerAim, PlayerMotor, PlayerShooter, PlayerHealth, Interactor) BuildPlayer(InputActionAsset input)
         {
             var player = new GameObject("Player (Albert)");
-            var controller = player.AddComponent<CharacterController>();
-            controller.center = new Vector3(0f, 1f, 0f);
-            controller.height = 2f;
-            controller.radius = 0.4f;
+            (CapsuleCollider capsule, KCCMovementEngine engine) = KinematicBody(player, 0.4f, 2f);
+            Transform visual = InterpolatedVisual(player.transform);
 
-            GameObject model = Mannequin(player.transform);
+            GameObject model = Mannequin(visual);
             GameObject staff = Visual(LoadPrefab("PSXMeleeWeapons/Prefabs/PF_wizard_staff"), FindBone(model, "RightHand"), "Staff");
             staff.transform.localPosition = Vector3.zero;
 
-            var locomotion = player.AddComponent<LocomotionAnimator>();
+            var locomotion = visual.gameObject.AddComponent<LocomotionAnimator>();
             Edit(locomotion, s => SetObject(s, "_animator", model.GetComponent<Animator>()));
 
             var muzzle = new GameObject("Muzzle").transform;
@@ -266,15 +269,15 @@ namespace Game.Editor
 
             var aim = player.AddComponent<PlayerAim>();
             var motor = Disabled(player.AddComponent<PlayerMotor>());
-            Edit(motor, s => SetObject(s, "_controller", controller));
+            Edit(motor, s => SetObject(s, "_engine", engine));
             var shooter = Disabled(player.AddComponent<PlayerShooter>());
             Edit(shooter, s => SetObject(s, "_muzzle", muzzle));
             var health = Disabled(player.AddComponent<PlayerHealth>());
-            Edit(health, s => SetObject(s, "_controller", controller));
+            Edit(health, s => SetObject(s, "_capsule", capsule));
             var interactor = Disabled(player.AddComponent<Interactor>());
             var inputReader = Disabled(player.AddComponent<PlayerInputReader>());
             Edit(inputReader, s => SetObject(s, "_actions", input));
-            return (player, aim, motor, shooter, health, interactor);
+            return (player, visual, aim, motor, shooter, health, interactor);
         }
 
         private static SkillCheckSite BuildSite(Game.Data.SkillCheckSiteDef definition, (string Prefab, Vector3 Position, Vector3 Euler) visualSpec, Camera camera, Font font)

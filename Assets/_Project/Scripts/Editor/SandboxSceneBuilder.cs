@@ -7,6 +7,7 @@ using Game.Gameplay.Input;
 using Game.Gameplay.Player;
 using Game.Gameplay.SkillChecks;
 using Game.Presentation;
+using nickmaltbie.OpenKCC.Character;
 using Game.Sandbox;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -97,31 +98,33 @@ namespace Game.Editor
 
             // Player
             var player = new GameObject("Player (Albert)");
-            var controller = player.AddComponent<CharacterController>();
-            controller.center = new Vector3(0f, 1f, 0f);
-            controller.height = 2f;
-            controller.radius = 0.4f;
-            Primitive("Body", PrimitiveType.Capsule, player.transform, new Vector3(0f, 1f, 0f), new Vector3(0.8f, 1f, 0.8f), GetMaterial("Player", new Color(0.2f, 0.35f, 0.85f)), keepCollider: false);
-            Primitive("Hat", PrimitiveType.Cylinder, player.transform, new Vector3(0f, 2.15f, 0f), new Vector3(0.7f, 0.12f, 0.7f), GetMaterial("Hat", new Color(0.35f, 0.15f, 0.55f)), keepCollider: false);
-            Primitive("Nose", PrimitiveType.Cube, player.transform, new Vector3(0f, 1.55f, 0.4f), Vector3.one * 0.15f, GetMaterial("Skin", new Color(0.95f, 0.75f, 0.6f)), keepCollider: false);
-            Primitive("Staff", PrimitiveType.Cube, player.transform, new Vector3(0.5f, 1.1f, 0.25f), new Vector3(0.08f, 1.8f, 0.08f), GetMaterial("Staff", new Color(0.4f, 0.25f, 0.1f)), keepCollider: false);
+            (CapsuleCollider capsule, KCCMovementEngine engine) = KinematicBody(player, 0.4f, 2f);
+            Transform visual = InterpolatedVisual(player.transform);
+            Primitive("Body", PrimitiveType.Capsule, visual, new Vector3(0f, 1f, 0f), new Vector3(0.8f, 1f, 0.8f), GetMaterial("Player", new Color(0.2f, 0.35f, 0.85f)), keepCollider: false);
+            Primitive("Hat", PrimitiveType.Cylinder, visual, new Vector3(0f, 2.15f, 0f), new Vector3(0.7f, 0.12f, 0.7f), GetMaterial("Hat", new Color(0.35f, 0.15f, 0.55f)), keepCollider: false);
+            Primitive("Nose", PrimitiveType.Cube, visual, new Vector3(0f, 1.55f, 0.4f), Vector3.one * 0.15f, GetMaterial("Skin", new Color(0.95f, 0.75f, 0.6f)), keepCollider: false);
+            Primitive("Staff", PrimitiveType.Cube, visual, new Vector3(0.5f, 1.1f, 0.25f), new Vector3(0.08f, 1.8f, 0.08f), GetMaterial("Staff", new Color(0.4f, 0.25f, 0.1f)), keepCollider: false);
             var muzzle = new GameObject("Muzzle").transform;
             muzzle.SetParent(player.transform, false);
             muzzle.localPosition = new Vector3(0.5f, 1.6f, 0.6f);
 
             var aim = player.AddComponent<PlayerAim>();
             var motor = Disabled(player.AddComponent<PlayerMotor>());
-            Edit(motor, s => SetObject(s, "_controller", controller));
+            Edit(motor, s => SetObject(s, "_engine", engine));
             var shooter = Disabled(player.AddComponent<PlayerShooter>());
             Edit(shooter, s => SetObject(s, "_muzzle", muzzle));
             var health = Disabled(player.AddComponent<PlayerHealth>());
-            Edit(health, s => SetObject(s, "_controller", controller));
+            Edit(health, s => SetObject(s, "_capsule", capsule));
             var interactor = Disabled(player.AddComponent<Interactor>());
             var inputReader = Disabled(player.AddComponent<PlayerInputReader>());
             Edit(inputReader, s => SetObject(s, "_actions", input));
 
             var thirdPerson = cameraObject.AddComponent<ThirdPersonCamera>();
-            Edit(thirdPerson, s => SetObject(s, "_aim", aim));
+            Edit(thirdPerson, s =>
+            {
+                SetObject(s, "_aim", aim);
+                SetObject(s, "_target", visual);
+            });
 
             // Systems
             var game = new GameObject("Game");

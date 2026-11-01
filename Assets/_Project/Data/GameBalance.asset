@@ -23,6 +23,18 @@ MonoBehaviour:
   _nat1RerollChancePerLuck: 0.05
   _nat20RewardCopies: 2
   _skillCheckPauseSeconds: 2
+  _movement:
+    _groundAcceleration: 60
+    _groundDeceleration: 50
+    _airAcceleration: 15
+    _gravity: 30
+    _maxFallSpeed: 40
+    _jumpHeight: 1.6
+    _coyoteTime: 0.12
+    _jumpBufferTime: 0.15
+    _maxWalkAngle: 50
+    _stepHeight: 0.35
+    _skinWidth: 0.01
   _statLimits:
   - _stat: 7
     _min: 1

@@ -35,7 +35,30 @@ namespace Game.Tests.EditMode
             PrivateField.Set(balance, "_nat1RerollChancePerLuck", 0.05f);
             PrivateField.Set(balance, "_nat20RewardCopies", 2);
             PrivateField.Set(balance, "_skillCheckPauseSeconds", 2f);
+            PrivateField.Set(balance, "_movement", Movement());
             return balance;
+        }
+
+        /// <summary>The sandbox movement values; individual tests override what they measure.</summary>
+        public static MovementTuning Movement(
+            float groundAcceleration = 60f,
+            float airAcceleration = 15f,
+            float jumpHeight = 1.6f,
+            float coyoteTime = 0.12f,
+            float jumpBufferTime = 0.15f)
+        {
+            return new MovementTuning(
+                groundAcceleration: groundAcceleration,
+                groundDeceleration: 50f,
+                airAcceleration: airAcceleration,
+                gravity: 30f,
+                maxFallSpeed: 40f,
+                jumpHeight: jumpHeight,
+                coyoteTime: coyoteTime,
+                jumpBufferTime: jumpBufferTime,
+                maxWalkAngle: 50f,
+                stepHeight: 0.35f,
+                skinWidth: 0.01f);
         }
 
         public SkillDef Skill(string id, Ability ability)

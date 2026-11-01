@@ -299,6 +299,33 @@ namespace nickmaltbie.OpenKCC.Character
         }
 
         /// <summary>
+        /// Displacement one move of the last <see cref="MovePlayer(float, Vector3)"/> call actually achieved,
+        /// after bounces and step-ups; excludes push-out, snap-down and moving ground.
+        /// </summary>
+        /// <param name="moveIndex">0 for the first move, 1 for the second.</param>
+        public Vector3 GetMoveDisplacement(int moveIndex)
+        {
+            int start = 0;
+            for (int i = 0; i < _bounces.Count; i++)
+            {
+                if (_bounces[i].action != KCCUtils.MovementAction.Stop)
+                {
+                    continue;
+                }
+
+                if (moveIndex == 0)
+                {
+                    return _bounces[i].finalPosition - _bounces[start].initialPosition;
+                }
+
+                moveIndex--;
+                start = i + 1;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(moveIndex), $"{name}: last tick had no move with this index");
+        }
+
+        /// <summary>
         /// Teleport player to a given position.
         /// </summary>
         /// <param name="position">Position to teleport player to.</param>

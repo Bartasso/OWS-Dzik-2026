@@ -41,6 +41,9 @@ namespace Game.Data
         [Tooltip("Seconds the game stays paused to show the roll.")]
         [SerializeField] private float _skillCheckPauseSeconds;
 
+        [Header("Movement")]
+        [SerializeField] private MovementTuning _movement = new MovementTuning();
+
         [Header("Stats")]
         [Tooltip("Clamp on final stat values. Stats without an entry are unbounded.")]
         [SerializeField] private List<StatLimit> _statLimits = new List<StatLimit>();
@@ -62,6 +65,8 @@ namespace Game.Data
         public int Nat20RewardCopies => _nat20RewardCopies;
 
         public float SkillCheckPauseSeconds => _skillCheckPauseSeconds;
+
+        public MovementTuning Movement => _movement;
 
         public SkillCheckRules ToSkillCheckRules()
         {
@@ -109,6 +114,15 @@ namespace Game.Data
             DataChecks.NotNegative(report, this, nameof(_damagePerAbilityPoint), _damagePerAbilityPoint);
             DataChecks.Positive(report, this, nameof(_interactRadius), _interactRadius);
             DataChecks.NotNegative(report, this, nameof(_skillCheckPauseSeconds), _skillCheckPauseSeconds);
+
+            if (_movement == null)
+            {
+                report.AddError(name, $"missing {nameof(_movement)}", this);
+            }
+            else
+            {
+                _movement.Validate(report, this);
+            }
 
             ValidateStatLimits(report);
         }

@@ -23,6 +23,7 @@ namespace Game.Gameplay.Input
         private InputAction _look;
         private InputAction _fire;
         private InputAction _interact;
+        private InputAction _jump;
         private PlayerAim _aim;
         private PlayerMotor _motor;
         private PlayerShooter _shooter;
@@ -45,6 +46,7 @@ namespace Game.Gameplay.Input
             _look = map.FindAction("Look", throwIfNotFound: true);
             _fire = map.FindAction("Fire", throwIfNotFound: true);
             _interact = map.FindAction("Interact", throwIfNotFound: true);
+            _jump = map.FindAction("Jump", throwIfNotFound: true);
             map.Enable();
             enabled = true;
         }
@@ -62,6 +64,11 @@ namespace Game.Gameplay.Input
             bool cursorLocked = Cursor.lockState == CursorLockMode.Locked;
 
             _motor.Apply(new MoveCommand(_move.ReadValue<Vector2>()));
+
+            if (_jump.WasPressedThisFrame())
+            {
+                _motor.Apply(new JumpCommand());
+            }
 
             if (cursorLocked)
             {

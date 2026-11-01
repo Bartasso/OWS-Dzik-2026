@@ -1,24 +1,33 @@
 using System;
 using Game.Core;
 using Game.Gameplay.Commands;
+using Game.Gameplay.Movement;
+using nickmaltbie.OpenKCC.Character;
 using UnityEngine;
 
 namespace Game.Gameplay.Player
 {
-    /// <summary>Moves the player from MoveCommands. Speed comes from the MoveSpeed stat.</summary>
+    /// <summary>
+    /// Turns the player's commands into a locomotion tick in FixedUpdate. Run speed and extra jumps
+    /// come from the stats, so trinkets change them through modifiers.
+    /// </summary>
     public sealed class PlayerMotor : MonoBehaviour
     {
-        [SerializeField] private CharacterController _controller;
+        [SerializeField] private KCCMovementEngine _engine;
 
         private RunContext _context;
         private PlayerAim _aim;
+        private CharacterLocomotion _locomotion;
         private Vector2 _input;
-        private float _verticalSpeed;
+        private bool _jumpQueued;
+
+        public LocomotionSimulator Locomotion => _locomotion.Simulator;
 
         public void Init(RunContext context, PlayerAim aim)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _aim = aim != null ? aim : throw new ArgumentNullException(nameof(aim));
+            _locomotion = new CharacterLocomotion(_engine, context.Balance.Movement);
             enabled = true;
         }
 
@@ -27,11 +36,17 @@ namespace Game.Gameplay.Player
             _input = Vector2.ClampMagnitude(command.Direction, 1f);
         }
 
+        /// <summary>Latched until the next tick, so a press between two ticks is not lost.</summary>
+        public void Apply(in JumpCommand command)
+        {
+            _jumpQueued = true;
+        }
+
         private void Awake()
         {
-            if (_controller == null)
+            if (_engine == null)
             {
-                throw new InvalidOperationException($"{name}: missing CharacterController reference");
+                throw new InvalidOperationException($"{name}: missing KCCMovementEngine reference");
             }
         }
 
@@ -42,19 +57,26 @@ namespace Game.Gameplay.Player
                 return;
             }
 
-            Quaternion facing = _aim.YawRotation;
-            transform.rotation = facing;
+            // The capsule is symmetric, so facing can follow the aim every frame without affecting collisions.
+            transform.rotation = _aim.YawRotation;
+        }
 
-            if (_controller.isGrounded && _verticalSpeed < 0f)
+        private void FixedUpdate()
+        {
+            if (_context.Pause.IsPaused)
             {
-                _verticalSpeed = 0f;
+                _jumpQueued = false;
+                return;
             }
 
-            _verticalSpeed += Physics.gravity.y * Time.deltaTime;
-
-            Vector3 velocity = facing * new Vector3(_input.x, 0f, _input.y) * _context.Stats.Get(StatId.MoveSpeed);
-            velocity.y = _verticalSpeed;
-            _controller.Move(velocity * Time.deltaTime);
+            Vector3 wish = _aim.YawRotation * new Vector3(_input.x, 0f, _input.y);
+            _locomotion.Tick(
+                wish,
+                _jumpQueued,
+                _context.Stats.Get(StatId.MoveSpeed),
+                _context.Stats.GetInt(StatId.ExtraJumps),
+                Time.deltaTime);
+            _jumpQueued = false;
         }
     }
 }

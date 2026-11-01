@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Game.Presentation;
+using nickmaltbie.OpenKCC.Character;
+using nickmaltbie.OpenKCC.Utils.ColliderCast;
 using UnityEditor;
 using UnityEngine;
 using static Game.Editor.SerializedFields;
@@ -85,6 +87,27 @@ namespace Game.Editor
             PrefabUtility.SaveAsPrefabAsset(contents, path);
             PrefabUtility.UnloadPrefabContents(contents);
             return AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<T>();
+        }
+
+        /// <summary>Kinematic capsule moved by OpenKCC, with the feet at the object's origin.</summary>
+        public static (CapsuleCollider Capsule, KCCMovementEngine Engine) KinematicBody(GameObject go, float radius, float height)
+        {
+            var capsule = go.AddComponent<CapsuleCollider>();
+            capsule.radius = radius;
+            capsule.height = height;
+            capsule.center = new Vector3(0f, height * 0.5f, 0f);
+            go.AddComponent<CapsuleColliderCast>();
+            go.AddComponent<Rigidbody>().isKinematic = true;
+            return (capsule, go.AddComponent<KCCMovementEngine>());
+        }
+
+        /// <summary>Child that smooths the fixed-tick motion of its body; put the character's visuals under it.</summary>
+        public static Transform InterpolatedVisual(Transform body)
+        {
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(body, false);
+            Edit(visual.gameObject.AddComponent<TransformInterpolator>(), s => SetObject(s, "_body", body));
+            return visual;
         }
 
         public static T Disabled<T>(T behaviour)

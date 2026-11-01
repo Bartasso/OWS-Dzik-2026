@@ -4,6 +4,7 @@
     "references": [
         "Game.Core",
         "Game.Data",
+        "nickmaltbie.OpenKCC",
         "Unity.InputSystem"
     ],
     "includePlatforms": [],

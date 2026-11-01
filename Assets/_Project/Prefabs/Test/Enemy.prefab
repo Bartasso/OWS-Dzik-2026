@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5521234948891665504}
   - component: {fileID: 1284393255350422006}
   - component: {fileID: 8059084980450585961}
-  - component: {fileID: 7811294701916664844}
+  - component: {fileID: 7900304597146388027}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -91,7 +91,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7811294701916664844
+--- !u!114 &7900304597146388027
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

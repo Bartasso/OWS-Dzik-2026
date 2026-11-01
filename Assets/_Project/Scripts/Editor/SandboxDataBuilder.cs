@@ -35,6 +35,8 @@ namespace Game.Editor
                 throw new InvalidOperationException($"missing {BalancePath}");
             }
 
+            EnsureMovementTuning(balance);
+
             SkillDef animals = Skill("Skill_Animals", "test.skill_animals", "Animal Handling", Ability.Wis);
             SkillDef athletics = Skill("Skill_Athletics", "test.skill_athletics", "Athletics", Ability.Str);
             SkillDef mechanisms = Skill("Skill_MagicMechanisms", "test.skill_magic_mechanisms", "Magic Mechanisms", Ability.Int);
@@ -120,6 +122,30 @@ namespace Game.Editor
                 PickupTrinkets = new[] { energyDrink, slippers, grandpasDie, clover, amulet },
                 Settings = settings,
             };
+        }
+
+        /// <summary>Fills the movement block only while it is unset, so Inspector tuning survives rebuilds.</summary>
+        private static void EnsureMovementTuning(GameBalance balance)
+        {
+            if (balance.Movement != null && balance.Movement.Gravity > 0f)
+            {
+                return;
+            }
+
+            Edit(balance, s =>
+            {
+                SetFloat(s, "_movement._groundAcceleration", 60f);
+                SetFloat(s, "_movement._groundDeceleration", 50f);
+                SetFloat(s, "_movement._airAcceleration", 15f);
+                SetFloat(s, "_movement._gravity", 30f);
+                SetFloat(s, "_movement._maxFallSpeed", 40f);
+                SetFloat(s, "_movement._jumpHeight", 1.6f);
+                SetFloat(s, "_movement._coyoteTime", 0.12f);
+                SetFloat(s, "_movement._jumpBufferTime", 0.15f);
+                SetFloat(s, "_movement._maxWalkAngle", 50f);
+                SetFloat(s, "_movement._stepHeight", 0.35f);
+                SetFloat(s, "_movement._skinWidth", 0.01f);
+            });
         }
 
         private static SkillDef Skill(string file, string id, string displayName, Ability ability)

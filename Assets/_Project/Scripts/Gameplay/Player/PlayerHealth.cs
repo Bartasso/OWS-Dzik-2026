@@ -6,7 +6,7 @@ namespace Game.Gameplay.Player
 {
     public sealed class PlayerHealth : MonoBehaviour
     {
-        [SerializeField] private CharacterController _controller;
+        [SerializeField] private CapsuleCollider _capsule;
 
         private RunContext _context;
 
@@ -19,7 +19,7 @@ namespace Game.Gameplay.Player
         /// <summary>Debug god mode.</summary>
         public bool Invulnerable { get; set; }
 
-        public float Radius => _controller.radius;
+        public float Radius => _capsule.radius;
 
         public void Init(RunContext context)
         {
@@ -47,9 +47,9 @@ namespace Game.Gameplay.Player
 
         private void Awake()
         {
-            if (_controller == null)
+            if (_capsule == null)
             {
-                throw new InvalidOperationException($"{name}: missing CharacterController reference");
+                throw new InvalidOperationException($"{name}: missing CapsuleCollider reference");
             }
         }
 

@@ -25,6 +25,7 @@ namespace Game.Tests.EditMode
             Set("_interactRadius", 2.5f);
             Set("_nat20RewardCopies", 2);
             Set("_skillCheckPauseSeconds", 2f);
+            Set("_movement", TestAssets.Movement());
         }
 
         [TearDown]
